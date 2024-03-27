@@ -12,6 +12,7 @@
         <module>gs-rpc-client</module>
         <module>gs-rpc-server</module>
         <module>gs-rpc-protocol</module>
+        <module>gs-rpc-common</module>
     </modules>
 
     <properties>
@@ -19,6 +20,39 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <curator-framework.version>5.6.0</curator-framework.version>
+        <curator-recipes.version>5.6.0</curator-recipes.version>
+        <netty-all.version>4.1.39.Final</netty-all.version>
     </properties>
 
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${curator-framework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator-recipes.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty-all.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
 </project>
