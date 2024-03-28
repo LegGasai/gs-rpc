@@ -5,5 +5,6 @@ package com.leggasai.rpc.serialization;
  * @Date: 2024-03-24-20:00
  * @Description: 序列化适配器
  */
-public class SerializationAdapter implements RpcSerialization{
+public class SerializationAdapter{
+
 }
