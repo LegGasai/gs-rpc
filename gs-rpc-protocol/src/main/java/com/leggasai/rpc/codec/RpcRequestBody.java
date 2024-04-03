@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-03-28-20:17
- * @Description:
+ * @Description: Request请求体
  */
 public class RpcRequestBody implements Serializable {
 

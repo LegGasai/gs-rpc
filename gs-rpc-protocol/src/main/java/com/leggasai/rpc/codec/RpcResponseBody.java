@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-03-28-20:17
- * @Description:
+ * @Description: Response响应体
  */
 public class RpcResponseBody implements Serializable {
 

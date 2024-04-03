@@ -1,2 +1,29 @@
-rpc:
-  name: testprovider
+
+
+gsrpc:
+  application:
+    name: rpc-springboot-demo
+    proxy: cglib
+
+  provider:
+    timeout: 1000
+    retries: 1
+    protocol: kindred
+    serialization: hessian
+    weight: 5
+    port: 20888
+
+  consumer:
+    timeout: 1000
+    retries: 1
+    loadbalance: WeightedRandom
+    protocol: kindred
+    port: -1
+    serialization: hessian
+
+  registry:
+    host: 127.0.0.1
+    port: 2181
+    session: 5000
+
+
