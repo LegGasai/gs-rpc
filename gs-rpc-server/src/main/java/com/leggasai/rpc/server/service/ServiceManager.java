@@ -2,7 +2,6 @@ package com.leggasai.rpc.server.service;
 
 import com.leggasai.rpc.annotation.GsService;
 import com.leggasai.rpc.common.beans.ServiceMeta;
-import com.leggasai.rpc.zookeeper.CuratorClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,6 +26,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class ServiceManager implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 
+    /**
+     * ServiceKey -> ServiceObject
+     */
     private Map<String,Object> servicesMap = new HashMap<String,Object>();
 
     private Set<ServiceMeta> serviceMetaSet = new HashSet<ServiceMeta>();
@@ -60,5 +62,10 @@ public class ServiceManager implements ApplicationContextAware {
                 cacheService(serviceMeta,implObj);
             }
         }
+        logger.info("ServiceManager starts up successfully and caches all serviceImpls");
+    }
+
+    public Object getService(String serviceKey){
+        return servicesMap.get(serviceKey);
     }
 }

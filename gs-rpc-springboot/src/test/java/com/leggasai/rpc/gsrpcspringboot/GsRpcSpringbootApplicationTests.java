@@ -2,18 +2,27 @@ package com.leggasai.rpc.gsrpcspringboot;
 
 import com.leggasai.rpc.client.discovery.DiscoveryBeanPostProcessor;
 import com.leggasai.rpc.client.discovery.DiscoveryCenter;
+import com.leggasai.rpc.codec.RpcRequestBody;
+import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.common.beans.RpcURL;
 import com.leggasai.rpc.common.beans.ServiceMeta;
 import com.leggasai.rpc.config.ApplicationProperties;
 import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.config.ProviderProperties;
 import com.leggasai.rpc.config.RegistryProperties;
+import com.leggasai.rpc.exception.ErrorCode;
+import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
+import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
 import com.leggasai.rpc.server.registry.RegistryCenter;
 import com.leggasai.rpc.server.service.ServiceManager;
+import com.leggasai.rpc.server.service.TaskManager;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import com.leggasai.rpc.threadpool.FixedThreadPool;
 import com.leggasai.rpc.utils.Snowflake;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.function.Try;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,9 +34,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @SpringBootTest
 class GsRpcSpringbootApplicationTests {
@@ -230,5 +237,125 @@ class GsRpcSpringbootApplicationTests {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    @Test
+    public void taskManagerTest(){
+        TaskManager taskManager = context.getBean(TaskManager.class);
+        // it should be less than the number of threadpool's threads
+        int taskNumber = 32;
+        for (int i = 0; i < taskNumber; i++) {
+            final int idx = i;
+            new Thread(()->{
+                RpcRequestBody request = new RpcRequestBody();
+                request.setService("Task :"+String.valueOf(idx));
+                taskManager.submit(request);
+            }).start();
+        }
+
+
+        try {
+            Thread.sleep(60000);
+        }catch (Exception e){
+
+        }
+    }
+
+    @Test
+    public void testManagerTestError(){
+        TaskManager taskManager = context.getBean(TaskManager.class);
+        RpcRequestBody request = new RpcRequestBody();
+        request.setService("Task :"+String.valueOf(1));
+        taskManager.submit(request);
+        try {
+            Thread.sleep(30000);
+        }catch (Exception e){
+
+        }
+    }
+
+    @Test
+    public void taskManagerUnitTest() throws Exception{
+        TaskManager taskManager = context.getBean(TaskManager.class);
+        // default version
+        RpcRequestBody request = new RpcRequestBody();
+        request.setService("com.leggasai.rpc.gsrpcspringboot.api.HelloService");
+        request.setMethod("hello");
+        request.setParameterTypes(new Class[]{String.class});
+        request.setParameters(new Object[]{"leggasai"});
+        request.setVersion("");
+        CompletableFuture<RpcResponseBody> future = taskManager.submit(request);
+        RpcResponseBody responseBody = future.get();
+        assert responseBody.getResult().equals(new HelloServiceImpl().hello("leggasai"));
+
+        // 2.0 version
+        request.setService("com.leggasai.rpc.gsrpcspringboot.api.HelloService");
+        request.setMethod("hello");
+        request.setParameterTypes(new Class[]{String.class});
+        request.setParameters(new Object[]{"leggasai"});
+        request.setVersion("2.0");
+        CompletableFuture<RpcResponseBody> future1 = taskManager.submit(request);
+        RpcResponseBody responseBody1 = future1.get();
+        assert responseBody1.getResult().equals(new HelloServiceImplV2().hello("leggasai"));
+
+        // no such service error
+        request.setService("unknown Service");
+        request.setMethod("hello");
+        CompletableFuture<RpcResponseBody> future2 = taskManager.submit(request);
+        RpcResponseBody responseBody2 = future2.get();
+        RpcException result = (RpcException) responseBody2.getResult();
+        assert result.getCode() == ErrorCode.SERVICE_NOT_FOUND.getCode();
+
+        // no such method error
+        request.setService("com.leggasai.rpc.gsrpcspringboot.api.HelloService");
+        request.setMethod("unknown method");
+        CompletableFuture<RpcResponseBody> future3 = taskManager.submit(request);
+        RpcResponseBody responseBody3 = future3.get();
+        RpcException result1 = (RpcException) responseBody3.getResult();
+        assert result1.getCode() == ErrorCode.METHOD_NOT_FOUND.getCode();
+    }
+
+
+    @Test
+    public void taskManagerTimeoutTest(){
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test", 5, 5, 60 * 1000);
+
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            try {
+                while (!Thread.interrupted()){
+
+                }
+                System.out.println("执行完成");
+                return "finish";
+            } catch (Exception e) {
+                throw new RuntimeException();
+            }
+        }, executor);
+
+        System.out.println(future.isDone());
+
+        try {
+            Thread.sleep(5000);
+        }catch (Exception e) {
+
+        }
+        future.cancel(true);
+        System.out.println("超时取消");
+        System.out.println(future.isCancelled());
+        try {
+            Thread.sleep(1000);
+        }catch (Exception e) {
+
+        }
+        System.out.println(executor.getActiveCount());
+        try {
+            Thread.sleep(10000);
+        }catch (Exception e) {
+
+        }
+        System.out.println(executor.getActiveCount());
+
+        
     }
 }

@@ -20,6 +20,18 @@ public class RpcResponseBody implements Serializable {
      */
     private Object result;
 
+    public RpcResponseBody() {
+    }
+
+    public RpcResponseBody(ResponseType responseType) {
+        this.responseType = responseType;
+    }
+
+    public RpcResponseBody(ResponseType responseType, Object result) {
+        this.responseType = responseType;
+        this.result = result;
+    }
+
     public ResponseType getResponseType() {
         return responseType;
     }
@@ -34,5 +46,30 @@ public class RpcResponseBody implements Serializable {
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+
+    public static RpcResponseBody successWithResult(Object result) {
+        return new RpcResponseBody(ResponseType.RESPONSE_VALUE, result);
+    }
+
+    public static RpcResponseBody successWithNull() {
+        return new RpcResponseBody(ResponseType.RESPONSE_NULL);
+    }
+
+    public static RpcResponseBody failWithException(Object exception) {
+        return new RpcResponseBody(ResponseType.RESPONSE_ERROR, exception);
+    }
+
+    /**
+     * just for debug, fixme
+     * @return
+     */
+    @Override
+    public String toString() {
+        return "RpcResponseBody{" +
+                "responseType=" + responseType +
+                ", result=" + result +
+                '}';
     }
 }

@@ -7,7 +7,7 @@ import java.util.concurrent.*;
  * @Date: 2024-04-01-20:55
  * @Description: Fixed线程池
  */
-public class FixedThreadPool {
+public class FixedThreadPool{
 
     public static Executor getExecutor(String name,int threads,int queueSize){
         BlockingQueue<Runnable> blockQueue = null;

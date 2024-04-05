@@ -4,6 +4,7 @@ import com.leggasai.rpc.common.beans.RpcURL;
 import com.leggasai.rpc.common.beans.ServiceMeta;
 import com.leggasai.rpc.config.ProviderProperties;
 import com.leggasai.rpc.config.RegistryProperties;
+import com.leggasai.rpc.constants.Separator;
 import com.leggasai.rpc.server.service.ServiceManager;
 import com.leggasai.rpc.utils.PathUtil;
 import com.leggasai.rpc.zookeeper.CuratorClient;
@@ -31,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class RegistryCenter{
 
     private static final Logger logger = LoggerFactory.getLogger(RegistryCenter.class);
-    private static final String SPLIT_TOKEN = "/";
+    private static final String SPLIT_TOKEN = Separator.PATH_SPLIT;
     private static final String PROVIDER_PREFIX = "providers";
     private static final String SERVICE_PREFIX = "services";
 

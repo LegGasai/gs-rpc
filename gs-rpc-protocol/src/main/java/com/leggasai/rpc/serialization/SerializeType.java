@@ -7,7 +7,7 @@ public enum SerializeType {
     HESSIANSERIALIZE("hessian"),
     PROTOSTUFFSERIALIZE("protostuff"),
     FSTSERIALIZE("fst");
-    private String serializeProtocol;
+    private final String serializeProtocol;
 
     private SerializeType(String serializeProtocol) {
         this.serializeProtocol = serializeProtocol;
