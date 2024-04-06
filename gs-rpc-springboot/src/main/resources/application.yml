@@ -12,6 +12,7 @@ gsrpc:
     serialization: hessian
     weight: 5
     port: 20888
+    accepts: 1024
 
   consumer:
     timeout: 1000

@@ -1,5 +1,7 @@
 package com.leggasai.rpc.common.beans;
 
+import javafx.scene.chart.ValueAxis;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,6 +73,18 @@ public class RpcURL {
 
     public Integer getPort() {
         return port;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+
+    public void setParameter(String key,String value){
+        this.parameters.put(key, value);
     }
 
     public Map<String, String> getParameters() {

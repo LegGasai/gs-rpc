@@ -103,7 +103,7 @@ public class RegistryCenter{
         doRegister(serviceMetaSet,false);
     }
 
-    public void doRegister(Set<ServiceMeta> serviceMetaSet, Boolean first){
+    private void doRegister(Set<ServiceMeta> serviceMetaSet, Boolean first){
         if (!curatorClient.isConnected()){
             logger.error("Registry services fails, cannot connect to the registry center {}:{}",registryProperties.getHost(),registryProperties.getPort());
             return;

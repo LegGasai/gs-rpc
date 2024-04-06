@@ -111,12 +111,14 @@ public class TaskManager {
                     logger.info("TaskManager time out shutdown, the number of unfinished tasks is {}", taskCount.get());
                     executor.shutdownNow();
                 }else{
-                    logger.info("TaskManager shutdown successfully after all tasks finished.");
+                    logger.info("TaskManager has shutdown successfully after all tasks finished.");
                 }
             } catch (InterruptedException e) {
-                logger.info("TaskManager time out shutdown, the number of unfinished tasks is {}", taskCount.get());
+                logger.info("TaskManager shutdown error and is forcing to shutdown, the number of unfinished tasks is {}", taskCount.get());
                 executor.shutdownNow();
             }
+        }else{
+            logger.info("TaskManager has shutdown successfully after all tasks finished.");
         }
     }
 

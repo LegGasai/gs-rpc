@@ -12,14 +12,13 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public class KindredCodec implements Codec {
 
 
-
     @Override
     public MessageToByteEncoder getEncoder() {
-        return null;
+        return new KindredEncoder();
     }
 
     @Override
     public ByteToMessageDecoder getDecoder() {
-        return null;
+        return new KindredDecoder();
     }
 }

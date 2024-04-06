@@ -21,6 +21,8 @@ public class ProviderProperties {
     private String serialization;
     @Value("${gsrpc.provider.weight:5}")
     private Integer weight;
+    @Value("${gsrpc.provider.accepts:1024}")
+    private Integer accepts;
 
     public Integer getTimeout() {
         return timeout;
@@ -70,6 +72,13 @@ public class ProviderProperties {
         this.weight = weight;
     }
 
+    public Integer getAccepts() {
+        return accepts;
+    }
+
+    public void setAccepts(Integer accepts) {
+        this.accepts = accepts;
+    }
 
     /**
      * just for test, fixme

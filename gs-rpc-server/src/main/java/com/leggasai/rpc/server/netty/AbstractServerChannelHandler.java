@@ -5,6 +5,9 @@ import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @Author: Jiang Yichen
@@ -12,16 +15,18 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * @Description:
  */
 public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInboundHandler<T> {
-    private final TaskManager taskManager;
+    protected final TaskManager taskManager;
 
     protected AbstractServerChannelHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
 
 
-    protected void submitTask(RpcRequestBody request){
-        // teskManager.submit(request)
+    protected CompletableFuture<RpcResponseBody> submitTask(RpcRequestBody request){
+        CompletableFuture<RpcResponseBody> future = taskManager.submit(request);
+        return future;
     }
+
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -45,7 +50,9 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        super.userEventTriggered(ctx, evt);
+        if (evt instanceof IdleStateEvent){
+
+        }
     }
 
     @Override

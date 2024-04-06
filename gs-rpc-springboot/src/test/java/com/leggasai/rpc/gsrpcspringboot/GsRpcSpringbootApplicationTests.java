@@ -356,6 +356,11 @@ class GsRpcSpringbootApplicationTests {
         }
         System.out.println(executor.getActiveCount());
 
-        
+
+    }
+
+    @Test
+    public void nettyTest() throws Exception {
+
     }
 }
