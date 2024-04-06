@@ -1,7 +1,5 @@
 package com.leggasai.rpc.protocol;
 
-import com.leggasai.rpc.serialization.SerializeType;
-
 public enum ProtocolType {
     KINDRED("kindred");
     private final String name;

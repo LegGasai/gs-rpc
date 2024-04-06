@@ -12,7 +12,7 @@ import com.leggasai.rpc.serialization.protostuff.ProtostuffSerialization;
  * @Description:
  */
 public class SerializationFactory {
-    public static RpcSerialization getSerialize(SerializeType serializeType){
+    public static RpcSerialization getSerialize(SerializationType serializeType){
         switch (serializeType){
             case KRYOSERIALIZE:
                 return new KryoSerialization();

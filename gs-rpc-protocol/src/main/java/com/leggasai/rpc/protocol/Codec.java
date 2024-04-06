@@ -1,5 +1,6 @@
 package com.leggasai.rpc.protocol;
 
+import com.leggasai.rpc.serialization.SerializationType;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 
@@ -12,8 +13,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 public interface Codec {
 
-    MessageToByteEncoder getEncoder();
+    MessageToByteEncoder getEncoder(SerializationType serialization);
 
-    ByteToMessageDecoder getDecoder();
+    ByteToMessageDecoder getDecoder(SerializationType serialization);
 
 }

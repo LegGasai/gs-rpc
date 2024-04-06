@@ -1,6 +1,7 @@
 package com.leggasai.rpc.protocol.kindred;
 
 import com.leggasai.rpc.protocol.Codec;
+import com.leggasai.rpc.serialization.SerializationType;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 
@@ -13,12 +14,13 @@ public class KindredCodec implements Codec {
 
 
     @Override
-    public MessageToByteEncoder getEncoder() {
-        return new KindredEncoder();
+    public MessageToByteEncoder getEncoder(SerializationType serialization) {
+
+        return new KindredEncoder(serialization);
     }
 
     @Override
-    public ByteToMessageDecoder getDecoder() {
-        return new KindredDecoder();
+    public ByteToMessageDecoder getDecoder(SerializationType serialization) {
+        return new KindredDecoder(serialization);
     }
 }

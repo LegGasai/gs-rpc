@@ -3,9 +3,9 @@ package com.leggasai.rpc.server.netty;
 import com.leggasai.rpc.common.beans.RpcURL;
 import com.leggasai.rpc.config.ProviderProperties;
 import com.leggasai.rpc.protocol.ProtocolType;
+import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
 import com.leggasai.rpc.server.service.TaskManager;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -19,9 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 /**
  * @Author: Jiang Yichen
@@ -56,6 +54,7 @@ public class NettyServer{
         logger.info("NettyServer is starting...");
         Integer port = providerProperties.getPort();
         ProtocolType protocol = ProtocolType.getByName(providerProperties.getProtocol());
+        SerializationType serialization = SerializationType.getByProtocol(providerProperties.getSerialization());
         bootstrap = new ServerBootstrap();
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
@@ -64,7 +63,7 @@ public class NettyServer{
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, providerProperties.getAccepts())
                 .childOption(ChannelOption.SO_KEEPALIVE,true)
-                .childHandler(new RpcServerInitializer(protocol,taskManager));
+                .childHandler(new RpcServerInitializer(protocol,serialization,taskManager));
         // bind address
         try {
             ChannelFuture channelFuture = bootstrap.bind(port).sync();

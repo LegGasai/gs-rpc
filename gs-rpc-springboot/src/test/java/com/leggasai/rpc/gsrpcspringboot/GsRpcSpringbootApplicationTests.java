@@ -10,16 +10,20 @@ import com.leggasai.rpc.config.ApplicationProperties;
 import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.config.ProviderProperties;
 import com.leggasai.rpc.config.RegistryProperties;
+import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
+import com.leggasai.rpc.protocol.kindred.Kindred;
+import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
 import com.leggasai.rpc.server.service.ServiceManager;
 import com.leggasai.rpc.server.service.TaskManager;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import com.leggasai.rpc.threadpool.FixedThreadPool;
 import com.leggasai.rpc.utils.Snowflake;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.function.Try;
 import org.springframework.beans.factory.BeanFactory;
@@ -362,5 +366,61 @@ class GsRpcSpringbootApplicationTests {
     @Test
     public void nettyTest() throws Exception {
 
+    }
+
+    @Test
+    public void kindredTest(){
+        // 默认
+        Kindred kindred = new Kindred();
+        printKindred(kindred);
+
+        // 请求ID
+        Long id = Snowflake.generateId();
+        Kindred kindred1 = new Kindred(id);
+        printKindred(kindred1);
+        assert kindred1.getRequestId().equals(id);
+
+        // Request
+        Kindred kindred2 = new Kindred();
+        kindred2.setRequest();
+        assert kindred2.isRequest();
+        kindred2.setNoData();
+        assert !kindred2.needReturnData();
+        kindred2.setNoEvent();
+        assert !kindred2.isEvent();
+        kindred2.setSerialize(SerializationType.FSTSERIALIZE);
+        kindred2.setStatus(ErrorCode.NULL);
+        kindred2.setLength(16);
+        printKindred(kindred2);
+        // Response
+        kindred2.setResponse();
+        assert !kindred2.isRequest();
+        kindred2.setNeedData();
+        assert kindred2.needReturnData();
+        kindred2.setEvent();
+        assert kindred2.isEvent();
+        kindred2.setSerialize(SerializationType.PROTOSTUFFSERIALIZE);
+        kindred2.setStatus(ErrorCode.OK);
+        printKindred(kindred2);
+
+        // Body
+        kindred2.setResponseBody(RpcResponseBody.successWithResult("ok"));
+        RpcRequestBody requestBody = new RpcRequestBody();
+        requestBody.setService("com.rpc.demo.hello");
+        requestBody.setMethod("sayHello");
+        kindred2.setRequestBody(requestBody);
+        printKindred(kindred2);
+    }
+    private void printKindred(Kindred kindred){
+        System.out.println("-----------Kindred-----------");
+        System.out.println("RequestId:"+kindred.getRequestId());
+        System.out.println("Request/Response:"+kindred.isRequest());
+        System.out.println("NeedData:"+kindred.needReturnData());
+        System.out.println("IsEvent:"+kindred.isEvent());
+        System.out.println("Serialization:"+ SerializationType.getBySerializeId((int)kindred.getSerializeId()).getSerializeProtocol());
+        System.out.println("Status:"+ErrorCode.getByCode(kindred.getStatus()));
+        System.out.println("Length:"+kindred.getLength());
+        System.out.println("Request:"+kindred.getRequestBody());
+        System.out.println("Response:"+kindred.getResponseBody());
     }
 }
