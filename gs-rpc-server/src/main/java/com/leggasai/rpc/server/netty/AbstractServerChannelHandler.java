@@ -2,19 +2,23 @@ package com.leggasai.rpc.server.netty;
 
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-04-03-22:04
- * @Description:
+ * @Description: ChannelHandler抽象类
  */
 public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInboundHandler<T> {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractServerChannelHandler.class);
     protected final TaskManager taskManager;
 
     protected AbstractServerChannelHandler(TaskManager taskManager) {
@@ -57,6 +61,10 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (cause instanceof RpcException){
+            logger.error("Exception in channel pipeline and will close this channel {}",ctx.channel(),cause);
+        }
+        ctx.close();
         super.exceptionCaught(ctx, cause);
     }
 }

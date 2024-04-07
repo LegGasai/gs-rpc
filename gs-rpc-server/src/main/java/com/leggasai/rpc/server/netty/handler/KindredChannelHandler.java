@@ -2,6 +2,9 @@ package com.leggasai.rpc.server.netty.handler;
 
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.enums.ResponseType;
+import com.leggasai.rpc.exception.ErrorCode;
+import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.protocol.kindred.Kindred;
 import com.leggasai.rpc.server.netty.AbstractServerChannelHandler;
 import com.leggasai.rpc.server.service.TaskManager;
@@ -24,17 +27,26 @@ public class KindredChannelHandler extends AbstractServerChannelHandler<Kindred>
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Kindred kindred) throws Exception {
-        // todo
-        // 提取kindred中的requestBody，执行submit(requestBody)即可
-        CompletableFuture<RpcResponseBody> future = submitTask(new RpcRequestBody());
+        CompletableFuture<RpcResponseBody> future = submitTask(kindred.getRequestBody());
         future.thenAccept((response)->{
-            // todo
-            // kindred.setResponse
+            transform(kindred,response);
             channelHandlerContext.writeAndFlush(kindred);
         });
-
     }
 
-
-
+    private void transform(Kindred kindred,RpcResponseBody response){
+        kindred.setResponse();
+        kindred.setResponseBody(response);
+        ResponseType responseType = response.getResponseType();
+        if (responseType == ResponseType.RESPONSE_VALUE){
+            kindred.setNeedData();
+            kindred.setStatus(ErrorCode.OK);
+        }else if (responseType == ResponseType.RESPONSE_NULL){
+            kindred.setNoData();
+            kindred.setStatus(ErrorCode.OK);
+        }else if (responseType == ResponseType.RESPONSE_ERROR){
+            RpcException exception = (RpcException) response.getResult();
+            kindred.setStatus((byte)exception.getCode());
+        }
+    }
 }

@@ -15,7 +15,7 @@ import java.io.Serializable;
  */
 public class Kindred implements Serializable {
 
-    private static final int HEADER_LENGTH = 16;
+    public static final int HEADER_LENGTH = 16;
     private static final short MAGIC_NUMBER = (short)0xCDED;
     private static final byte IS_REQUEST_MASK = (byte)0x80;
     private static final byte NEED_DATA_MASK = (byte)0x40;
@@ -106,8 +106,8 @@ public class Kindred implements Serializable {
     }
 
 
-    public static Boolean isKindred(Kindred kindred){
-        return kindred.getMagic().equals(MAGIC_NUMBER);
+    public static Boolean isKindred(Short magic){
+        return magic != null && magic == MAGIC_NUMBER;
     }
 
     public Byte getBitInfo() {
@@ -132,6 +132,14 @@ public class Kindred implements Serializable {
 
     public void setLength(Integer length) {
         this.length = length;
+    }
+
+    public void setBitInfo(Byte bitInfo) {
+        this.bitInfo = bitInfo;
+    }
+
+    public void setStatus(Byte status) {
+        this.status = status;
     }
 
     private byte getIsRequest(){
@@ -189,8 +197,6 @@ public class Kindred implements Serializable {
     public void setSerialize(SerializationType serialize){
         byte serializeId = serialize.getSerializeId().byteValue();
         this.bitInfo = (byte)((this.bitInfo & ~SERIALIZE_MASK) | serializeId);
-        System.out.println(serializeId);
-        System.out.println("BitInfo: " + (this.bitInfo));
     }
 
 

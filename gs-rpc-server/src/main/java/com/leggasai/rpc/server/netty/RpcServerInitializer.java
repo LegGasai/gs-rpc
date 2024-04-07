@@ -5,6 +5,7 @@ import com.leggasai.rpc.protocol.CodecAdapter;
 import com.leggasai.rpc.protocol.ProtocolType;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.netty.handler.ChannelHandlerFactory;
+import com.leggasai.rpc.server.netty.handler.HeartBeatHandler;
 import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -35,9 +36,10 @@ public class RpcServerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast("server-idle-handler",new IdleStateHandler(0,0, CLOSE_TIMEOUT,TimeUnit.MILLISECONDS));
+        ch.pipeline().addLast("heartbeat-handler",new HeartBeatHandler());// 添加一个心跳处理
         ch.pipeline().addLast("decoder",codec.getDecoder(serialization));
         ch.pipeline().addLast("encoder",codec.getEncoder(serialization));
-        ch.pipeline().addLast("server-idle-handler",new IdleStateHandler(0,0, CLOSE_TIMEOUT,TimeUnit.MILLISECONDS));
         ch.pipeline().addLast("server-handler", ChannelHandlerFactory.createChannelHandler(taskManager,protocol));
     }
 }

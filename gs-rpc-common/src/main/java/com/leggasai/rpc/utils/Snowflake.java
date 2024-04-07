@@ -154,7 +154,16 @@ public class Snowflake {
     }
 
     private static Long getDataCenterId(){
-        int[] ints = StringUtils.toCodePoints(SystemUtils.getHostName());
+
+        String hostname = SystemUtils.getHostName();
+        if (StringUtils.isEmpty(hostname)){
+            try {
+                hostname = Inet4Address.getLocalHost().getHostAddress();
+            }catch (UnknownHostException e){
+                throw new RuntimeException(e);
+            }
+        }
+        int[] ints = StringUtils.toCodePoints(hostname);
         int sums = 0;
         for (int i: ints) {
             sums += i;
