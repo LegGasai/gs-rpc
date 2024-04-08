@@ -13,6 +13,7 @@ import com.leggasai.rpc.config.RegistryProperties;
 import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
 import com.leggasai.rpc.protocol.kindred.Kindred;
@@ -422,5 +423,14 @@ class GsRpcSpringbootApplicationTests {
         System.out.println("Length:"+kindred.getLength());
         System.out.println("Request:"+kindred.getRequestBody());
         System.out.println("Response:"+kindred.getResponseBody());
+    }
+
+
+
+    @Test
+    public void proxyTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        demoService.demoTest();
+
     }
 }

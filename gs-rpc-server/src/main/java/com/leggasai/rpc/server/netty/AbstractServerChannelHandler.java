@@ -3,6 +3,7 @@ package com.leggasai.rpc.server.netty;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
 import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -34,6 +35,7 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        logger.info("Client channel {} is registered",ctx.channel());
         super.channelRegistered(ctx);
     }
 
@@ -55,7 +57,8 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent){
-
+            ctx.channel().close();
+            logger.warn("Channel {} is idle for {} seconds, and close this channel",ctx.channel(), HeartBeat.HEARTBEAT_TIMEOUT/1000);
         }
     }
 

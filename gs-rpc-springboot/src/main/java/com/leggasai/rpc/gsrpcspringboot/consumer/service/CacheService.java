@@ -4,22 +4,11 @@ import com.leggasai.rpc.annotation.GsReference;
 import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
 import org.springframework.stereotype.Component;
 
-/**
- * @Author: Jiang Yichen
- * @Date: 2024-04-02-22:15
- * @Description:
- */
 @Component
-public class DemoService {
-
+public class CacheService {
     @GsReference()
     private HelloService helloService;
 
     @GsReference(version = "2.0")
     private HelloService helloService2;
-
-    public void demoTest(){
-        helloService.hello("666");
-        helloService2.hello("666");
-    }
 }

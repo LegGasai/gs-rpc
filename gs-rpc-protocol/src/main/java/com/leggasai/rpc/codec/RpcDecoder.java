@@ -12,6 +12,7 @@ import java.util.List;
  * @Date: 2024-03-24-20:05
  * @Description:
  */
+@Deprecated
 public class RpcDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
