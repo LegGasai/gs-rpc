@@ -1,44 +1,43 @@
-package com.leggasai.rpc.server.netty;
+package com.leggasai.rpc.client.netty;
 
+import com.leggasai.rpc.client.invoke.InvocationManager;
+import com.leggasai.rpc.client.netty.handler.ClientChannelHandlerFactory;
 import com.leggasai.rpc.protocol.Codec;
 import com.leggasai.rpc.protocol.CodecAdapter;
 import com.leggasai.rpc.protocol.ProtocolType;
 import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
 import com.leggasai.rpc.serialization.SerializationType;
-import com.leggasai.rpc.server.netty.handler.ServerChannelHandlerFactory;
-import com.leggasai.rpc.server.netty.handler.HeartBeatHandler;
-import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * @Author: Jiang Yichen
- * @Date: 2024-04-05-13:05
+ * @Date: 2024-04-09-15:05
  * @Description:
  */
-public class RpcServerInitializer extends ChannelInitializer<SocketChannel> {
+public class RpcClientInitializer extends ChannelInitializer<SocketChannel> {
+
     private ProtocolType protocol;
     private SerializationType serialization;
-    private TaskManager taskManager;
+    private InvocationManager invocationManager;
     private Codec codec;
 
-
-    public RpcServerInitializer(ProtocolType protocol, SerializationType serialization, TaskManager taskManager) {
+    public RpcClientInitializer(ProtocolType protocol, SerializationType serialization, InvocationManager invocationManager) {
         this.protocol = protocol;
         this.serialization = serialization;
-        this.taskManager = taskManager;
+        this.invocationManager = invocationManager;
         this.codec = CodecAdapter.getCodec(protocol);
     }
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ch.pipeline().addLast("server-idle-handler",new IdleStateHandler(0,0, HeartBeat.HEARTBEAT_TIMEOUT,TimeUnit.MILLISECONDS));
-        ch.pipeline().addLast("heartbeat-handler",new HeartBeatHandler());// 添加一个心跳处理
+        ch.pipeline().addLast("client-idle-handler",new IdleStateHandler(0,0, HeartBeat.HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS));
         ch.pipeline().addLast("decoder",codec.getDecoder(serialization));
         ch.pipeline().addLast("encoder",codec.getEncoder(serialization));
-        ch.pipeline().addLast("server-handler", ServerChannelHandlerFactory.createChannelHandler(taskManager,protocol));
+        ch.pipeline().addLast("client-handler", ClientChannelHandlerFactory.createChannelHandler(invocationManager, protocol));
     }
 }

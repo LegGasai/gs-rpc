@@ -1,10 +1,7 @@
-package com.leggasai.rpc.server.netty;
+package com.leggasai.rpc.client.netty.handler;
 
-import com.leggasai.rpc.codec.RpcRequestBody;
-import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.exception.RpcException;
-import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
-import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,31 +9,18 @@ import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
+public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInboundHandler<T> {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractClientChannelHandler.class);
+    protected final InvocationManager invocationManager;
 
-/**
- * @Author: Jiang Yichen
- * @Date: 2024-04-03-22:04
- * @Description: ChannelHandler抽象类
- */
-public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInboundHandler<T> {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractServerChannelHandler.class);
-    protected final TaskManager taskManager;
-
-    protected AbstractServerChannelHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+    protected Channel channel;
+    protected AbstractClientChannelHandler(InvocationManager invocationManager) {
+        this.invocationManager = invocationManager;
     }
-
-
-    protected CompletableFuture<RpcResponseBody> submitTask(RpcRequestBody request){
-        CompletableFuture<RpcResponseBody> future = taskManager.submit(request);
-        return future;
-    }
-
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        logger.info("Channel {} is registered",ctx.channel());
+        logger.info("Client channel {} is registered",ctx.channel());
         super.channelRegistered(ctx);
     }
 
@@ -48,6 +32,7 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel channel = ctx.channel();
+        this.channel = channel;
         logger.info("The connection of {} <-> {} is established.",channel.remoteAddress(),channel.localAddress());
         super.channelActive(ctx);
     }
@@ -60,8 +45,7 @@ public abstract class AbstractServerChannelHandler<T> extends SimpleChannelInbou
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent){
-            ctx.channel().close();
-            logger.warn("Channel {} is idle for {} seconds, and close this channel",ctx.channel(), HeartBeat.HEARTBEAT_TIMEOUT/1000);
+            // 发送心跳
         }
     }
 

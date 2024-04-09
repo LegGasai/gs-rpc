@@ -10,8 +10,8 @@ import io.netty.handler.codec.http.FullHttpRequest;
  * @Date: 2024-04-03-22:15
  * @Description:
  */
-public class HttpChannelHandler extends AbstractServerChannelHandler<FullHttpRequest> {
-    public HttpChannelHandler(TaskManager taskManager) {
+public class HttpServerChannelHandler extends AbstractServerChannelHandler<FullHttpRequest> {
+    public HttpServerChannelHandler(TaskManager taskManager) {
         super(taskManager);
     }
 

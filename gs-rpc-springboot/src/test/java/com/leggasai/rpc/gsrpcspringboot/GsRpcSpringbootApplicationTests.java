@@ -2,6 +2,7 @@ package com.leggasai.rpc.gsrpcspringboot;
 
 import com.leggasai.rpc.client.discovery.DiscoveryBeanPostProcessor;
 import com.leggasai.rpc.client.discovery.DiscoveryCenter;
+import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.common.beans.RpcURL;
@@ -23,6 +24,7 @@ import com.leggasai.rpc.server.service.ServiceManager;
 import com.leggasai.rpc.server.service.TaskManager;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import com.leggasai.rpc.threadpool.FixedThreadPool;
+import com.leggasai.rpc.utils.NetUtil;
 import com.leggasai.rpc.utils.Snowflake;
 import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.junit.jupiter.api.Test;
@@ -432,5 +434,12 @@ class GsRpcSpringbootApplicationTests {
         DemoService demoService = context.getBean(DemoService.class);
         demoService.demoTest();
 
+    }
+
+    @Test
+    public void netTest(){
+        System.out.println(NetUtil.getLocalAddress());
+        System.out.println(NetUtil.getLocalHost());
+        System.out.println(NetUtil.getLocalHostName());
     }
 }

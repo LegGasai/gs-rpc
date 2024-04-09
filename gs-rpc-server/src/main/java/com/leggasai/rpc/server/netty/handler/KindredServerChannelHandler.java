@@ -1,6 +1,5 @@
 package com.leggasai.rpc.server.netty.handler;
 
-import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
@@ -9,7 +8,6 @@ import com.leggasai.rpc.protocol.kindred.Kindred;
 import com.leggasai.rpc.server.netty.AbstractServerChannelHandler;
 import com.leggasai.rpc.server.service.TaskManager;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -18,10 +16,10 @@ import java.util.concurrent.CompletableFuture;
  * @Date: 2024-04-03-19:17
  * @Description:
  */
-public class KindredChannelHandler extends AbstractServerChannelHandler<Kindred> {
+public class KindredServerChannelHandler extends AbstractServerChannelHandler<Kindred> {
 
 
-    public KindredChannelHandler(TaskManager taskManager) {
+    public KindredServerChannelHandler(TaskManager taskManager) {
         super(taskManager);
     }
 

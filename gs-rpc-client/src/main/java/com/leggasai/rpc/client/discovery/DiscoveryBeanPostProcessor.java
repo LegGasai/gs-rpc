@@ -1,6 +1,7 @@
 package com.leggasai.rpc.client.discovery;
 
 import com.leggasai.rpc.annotation.GsReference;
+import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.client.proxy.IProxyFactory;
 import com.leggasai.rpc.client.proxy.ProxyFactoryBuilder;
 import com.leggasai.rpc.client.proxy.ProxyType;
@@ -27,9 +28,12 @@ public class DiscoveryBeanPostProcessor implements BeanPostProcessor {
     private static final Logger logger = LoggerFactory.getLogger(DiscoveryBeanPostProcessor.class);
     @Autowired
     private DiscoveryCenter discoveryCenter;
-
     @Autowired
     private ApplicationProperties applicationProperties;
+    @Autowired
+    private ConsumerProperties consumerProperties;
+    @Autowired
+    private InvocationManager invocationManager;
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] fields = bean.getClass().getDeclaredFields();
@@ -44,7 +48,7 @@ public class DiscoveryBeanPostProcessor implements BeanPostProcessor {
                 // 创建代理
                 try {
                     IProxyFactory proxyFactory = ProxyFactoryBuilder.getProxyFactory(ProxyType.getByProxy(applicationProperties.getProxy()));
-                    Object proxy = proxyFactory.getProxy(field.getType(), serviceName, version);
+                    Object proxy = proxyFactory.getProxy(field.getType(), serviceName, version,consumerProperties, invocationManager);
                     field.set(bean, proxy);
                     logger.info("创建Service代理成功，serviceKey:{}#{},proxy:{}",serviceName,version,proxy);
                 } catch (IllegalAccessException e) {

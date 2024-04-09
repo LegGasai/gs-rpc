@@ -61,6 +61,9 @@ public class RpcResponseBody implements Serializable {
         return new RpcResponseBody(ResponseType.RESPONSE_ERROR, exception);
     }
 
+    public Boolean isSuccess(){
+        return responseType != null && (responseType == ResponseType.RESPONSE_VALUE || responseType == ResponseType.RESPONSE_NULL);
+    }
     /**
      * just for debug, fixme
      * @return

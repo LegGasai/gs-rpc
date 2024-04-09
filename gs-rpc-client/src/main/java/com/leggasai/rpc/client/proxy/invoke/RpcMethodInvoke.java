@@ -1,6 +1,25 @@
 package com.leggasai.rpc.client.proxy.invoke;
 
+import com.leggasai.rpc.client.invoke.Invocation;
+import com.leggasai.rpc.client.invoke.InvocationManager;
+import com.leggasai.rpc.codec.RpcRequestBody;
+import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.config.ConsumerProperties;
+import com.leggasai.rpc.exception.ErrorCode;
+import com.leggasai.rpc.exception.RpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
 import java.lang.reflect.Method;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-04-06-12:14
@@ -8,12 +27,26 @@ import java.lang.reflect.Method;
  */
 public class RpcMethodInvoke implements MethodInvoke{
 
+    private static final Logger logger = LoggerFactory.getLogger(RpcMethodInvoke.class);
     private final String service;
     private final String version;
+
 
     public RpcMethodInvoke(String service, String version) {
         this.service = service;
         this.version = version;
+    }
+
+    private InvocationManager invocationManager;
+
+    private ConsumerProperties consumerProperties;
+
+    public void setInvocationManager(InvocationManager invocationManager) {
+        this.invocationManager = invocationManager;
+    }
+
+    public void setConsumerProperties(ConsumerProperties consumerProperties) {
+        this.consumerProperties = consumerProperties;
     }
 
     @Override
@@ -33,13 +66,29 @@ public class RpcMethodInvoke implements MethodInvoke{
             }
         }
 
-        // todo
-        // 提交请求到teskManager，返回future
-        // return future.get()
-        // 超时机制
-        System.out.println(service + "#" + version + "#" + method.getName() + "#" );
-        return null;
+        RpcRequestBody requestBody = new RpcRequestBody();
+        requestBody.setService(service);
+        requestBody.setVersion(version);
+        requestBody.setMethod(method.getName());
+        requestBody.setParameters(args);
+        requestBody.setParameterTypes(method.getParameterTypes());
+        CompletableFuture<Object> future = invocationManager.submitRequest(requestBody);
+        try {
+            Object result = future.get(consumerProperties.getTimeout(), TimeUnit.MILLISECONDS);
+            if (result instanceof RpcException){
+                logger.error("RPC invoke error，ServiceKey={}#{}, Method={} ,{}",service,version,method.getName(),result);
+                throw (RpcException) result;
+            }else{
+                logger.error("RPC invoke success，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
+                return result;
+            }
+        }catch (TimeoutException e){
+            logger.error("RPC invoke timeout in {} seconds，ServiceKey={}#{}, Method={} ,",consumerProperties.getTimeout()/1000, service, version, method.getName(), e);
+            throw new RpcException(ErrorCode.CLIENT_TIMEOUT.getCode(),ErrorCode.CLIENT_TIMEOUT.getMessage());
+        }catch (ExecutionException  | InterruptedException e){
+            logger.error("RPC invoke error，ServiceKey={}#{}, Method={} ,",service,version,method.getName(),e);
+            throw e;
+        }
     }
-
 
 }

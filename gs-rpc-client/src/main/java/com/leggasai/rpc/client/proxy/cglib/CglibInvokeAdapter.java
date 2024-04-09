@@ -1,5 +1,6 @@
 package com.leggasai.rpc.client.proxy.cglib;
 
+import com.leggasai.rpc.client.proxy.invoke.MethodInvoke;
 import com.leggasai.rpc.client.proxy.invoke.RpcMethodInvoke;
 import io.protostuff.Rpc;
 import org.springframework.cglib.proxy.MethodInterceptor;
@@ -9,10 +10,10 @@ import java.lang.reflect.Method;
 
 public class CglibInvokeAdapter implements MethodInterceptor {
 
-    private final RpcMethodInvoke invoker;
+    private final MethodInvoke invoker;
 
-    public CglibInvokeAdapter(RpcMethodInvoke rpcMethodInvoke) {
-        this.invoker = rpcMethodInvoke;
+    public CglibInvokeAdapter(MethodInvoke methodInvoke) {
+        this.invoker = methodInvoke;
     }
 
     @Override
