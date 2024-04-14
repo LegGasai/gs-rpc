@@ -8,6 +8,7 @@ import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.protocol.ProtocolType;
 import com.leggasai.rpc.serialization.SerializationType;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -30,7 +31,6 @@ import javax.annotation.PreDestroy;
 public class NettyClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-
     private Bootstrap bootstrap;
 
     private EventLoopGroup eventLoopGroup;
@@ -43,11 +43,15 @@ public class NettyClient {
     @Autowired
     private DiscoveryCenter discoveryCenter;
 
+    @Autowired
+    private ConnectionPoolManager connectionPoolManager;
+
     @PostConstruct
     public void startup(){
         // 开启netty服务器
         initClient();
-
+        // 开启connectionManager
+        connectionPoolManager.start(this);
         // 订阅服务
         discoveryCenter.subscribeService();
     }
@@ -71,11 +75,15 @@ public class NettyClient {
      * @param invoker
      * @return
      */
-    public AbstractClientChannelHandler connect(Invoker invoker){
+    public AbstractClientChannelHandler connect(Invoker invoker) throws InterruptedException{
         // todo 和invoker建立连接
         // 返回handler
-
-        return null;
+        String host = invoker.getHost();
+        Integer port = invoker.getPort();
+        ChannelFuture future = bootstrap.connect(host, port);
+        future.sync();
+        logger.info("NettyClient connects to {}:{} successfully.", host, port);
+        return future.channel().pipeline().get(AbstractClientChannelHandler.class);
     }
 
     @PreDestroy
@@ -84,6 +92,8 @@ public class NettyClient {
         discoveryCenter.close();
         // 关闭调用中心
         invocationManager.shutdown();
+        // 关闭连接池
+        connectionPoolManager.close();
         // 关闭netty
         eventLoopGroup.shutdownGracefully();
         logger.info("NettyClient has shutdown successfully");

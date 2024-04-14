@@ -1,4 +1,4 @@
-package com.leggasai.rpc.test.serialize;
+package com.leggasai.rpc.test.protocol.serialization;
 
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.serialization.RpcSerialization;

@@ -73,7 +73,6 @@ public class NettyServer{
             logger.info("NettyServer startup successfully in {}",localAddress);
             // 注册服务
             // todo 优化
-            // fixme 服务提供者应该向注册中心注册的ip地址
             RpcURL rpcURL = new RpcURL();
             rpcURL.setHost(NetUtil.getLocalHost());
             rpcURL.setPort(localAddress.getPort());

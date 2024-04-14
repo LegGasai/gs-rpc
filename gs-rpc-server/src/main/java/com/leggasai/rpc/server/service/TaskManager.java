@@ -64,7 +64,6 @@ public class TaskManager {
         }
 
 
-
     }
 
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
@@ -98,11 +97,6 @@ public class TaskManager {
         } catch (InvocationTargetException e) {
             throw new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage(),e.getTargetException());
         }
-
-
-        //System.out.println(request);
-        //throw new RpcException(ErrorCode.SERVER_TIMEOUT.getCode(),ErrorCode.SERVER_TIMEOUT.getMessage());
-        // return null;
     }
 
     public void shutdown(){

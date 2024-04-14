@@ -74,7 +74,7 @@ public class Kindred implements Serializable {
     private RpcResponseBody responseBody;
 
     public Kindred() {
-        this.requestId = Snowflake.generateId();
+
     }
 
     public Kindred(Long requestId) {

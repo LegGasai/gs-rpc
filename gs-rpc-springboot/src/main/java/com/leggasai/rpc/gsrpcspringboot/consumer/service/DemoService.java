@@ -19,7 +19,15 @@ public class DemoService {
     private HelloService helloService2;
 
     public void demoTest(){
-        helloService.hello("666");
-        helloService2.hello("666");
+        System.out.println(helloService.hello("我是朱瑞祥"));
+        System.out.println(helloService2.hello("我是sb"));
+    }
+
+    public String helloTest(String name){
+        return helloService.hello(name);
+    }
+
+    public String helloTest2(String name){
+        return helloService2.hello(name);
     }
 }

@@ -3,6 +3,7 @@ package com.leggasai.rpc.client.discovery;
 import com.google.common.collect.Collections2;
 import com.leggasai.rpc.annotation.GsService;
 import com.leggasai.rpc.client.invoke.Invoker;
+import com.leggasai.rpc.client.netty.ConnectionPoolManager;
 import com.leggasai.rpc.common.beans.ServiceMeta;
 import com.leggasai.rpc.config.RegistryProperties;
 import com.leggasai.rpc.utils.PathUtil;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -35,7 +37,11 @@ public class DiscoveryCenter{
     @Autowired
     private RegistryProperties registryProperties;
 
+    @Autowired
+    private ConnectionPoolManager connectionPoolManager;
+
     private CuratorClient curatorClient;
+
 
     /**
      * 监视器Map
@@ -43,7 +49,7 @@ public class DiscoveryCenter{
     private ConcurrentHashMap<String, CuratorCache> curatorCacheMap = new ConcurrentHashMap<>();
 
     /**
-     * 缓存客户端所需服务信息
+     * 缓存客户端所需所有服务信息
      */
     private Set<ServiceMeta> serviceCache = new HashSet<ServiceMeta>();
 
@@ -56,6 +62,11 @@ public class DiscoveryCenter{
      * ProviderKey -> Invoker映射
      */
     private ConcurrentHashMap<String, Invoker> invokersMap = new ConcurrentHashMap<>();
+
+    /**
+     * ProviderKey -> Services映射
+     */
+    private ConcurrentHashMap<String, CopyOnWriteArraySet<String>> invoker2Services = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -101,6 +112,7 @@ public class DiscoveryCenter{
                 Invoker invoker = invokersMap.getOrDefault(providerKey,new Invoker(providerUrl));
                 invokerSet.add(invoker);
                 invokersMap.put(providerKey, invoker);
+                addServiceToInvoker(providerKey,serviceKey,invoker);
                 logger.info("DiscoveryCenter has subscribed service {} from provider {}",serviceMeta.getServiceKey(),providerKey);
             }
         }
@@ -117,6 +129,7 @@ public class DiscoveryCenter{
 
     public void addInvoker(String serviceKey, String providerKey, String providerUrl){
         Invoker invoker = invokersMap.getOrDefault(providerKey,new Invoker(providerUrl));
+        addServiceToInvoker(providerKey,serviceKey,invoker);
         CopyOnWriteArraySet<Invoker> invokers = service2Invokers.computeIfAbsent(serviceKey, k -> new CopyOnWriteArraySet<>());
         invokers.add(invoker);
         invokersMap.put(providerKey, invoker);
@@ -135,7 +148,8 @@ public class DiscoveryCenter{
         Invoker invoker = invokersMap.get(providerKey);
         if (invoker != null){
             CopyOnWriteArraySet<Invoker> invokers = service2Invokers.get(serviceKey);
-            if (invokers != null && invokers.contains(invoker)){
+            removeServiceFromInvoker(providerKey,serviceKey,invoker);
+            if (invokers != null){
                 invokers.remove(invoker);
             }
             logger.info("DiscoveryCenter has removed provider {} for service {}, because it has been disabled.",providerKey,serviceKey);
@@ -147,6 +161,24 @@ public class DiscoveryCenter{
         logger.info("Discover service {} and wait for subscription",serviceMeta.getServiceKey());
     }
 
+    private void addServiceToInvoker(String providerKey, String serviceKey, Invoker invoker){
+        CopyOnWriteArraySet<String> services = invoker2Services.computeIfAbsent(providerKey, k -> new CopyOnWriteArraySet<>());
+        services.add(serviceKey);
+        connectionPoolManager.getHandler(invoker);
+        logger.info("DiscoveryCenter has added service {} to provider {}",serviceKey,providerKey);
+    }
+
+    private void removeServiceFromInvoker(String providerKey, String serviceKey, Invoker invoker){
+        CopyOnWriteArraySet<String> services = invoker2Services.computeIfAbsent(providerKey, k -> new CopyOnWriteArraySet<>());
+        services.remove(serviceKey);
+        if (services.size() == 0){
+            connectionPoolManager.removeAndCloseHandler(invoker);
+            invoker2Services.remove(providerKey);
+            invokersMap.remove(providerKey);
+            logger.info("DiscoveryCenter has remove provider{} because it now does not provide any services",providerKey);
+        }
+    }
+
     /**
      * just for debug, fixme
      * @return
@@ -156,6 +188,14 @@ public class DiscoveryCenter{
         System.out.println(service2Invokers);
         System.out.println(invokersMap);
         return serviceCache;
+    }
+
+    public List<Invoker> getInvokersByServiceKey(String serviceKey){
+        CopyOnWriteArraySet<Invoker> invokers = service2Invokers.get(serviceKey);
+        if (CollectionUtils.isEmpty(invokers)){
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(service2Invokers.get(serviceKey));
     }
 
     private void closeListener(){

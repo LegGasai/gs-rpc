@@ -1,5 +1,6 @@
 package com.leggasai.rpc.client.netty.handler;
 
+import com.leggasai.rpc.client.invoke.Invocation;
 import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.exception.RpcException;
 import io.netty.channel.Channel;
@@ -8,7 +9,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * @Author: Jiang Yichen
+ * @Date: 2024-04-09-22:13
+ * @Description: 客户端ChannelHandler抽象类
+ */
 public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInboundHandler<T> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractClientChannelHandler.class);
     protected final InvocationManager invocationManager;
@@ -17,6 +22,8 @@ public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInbou
     protected AbstractClientChannelHandler(InvocationManager invocationManager) {
         this.invocationManager = invocationManager;
     }
+
+    public abstract void invoke(Invocation invocation);
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
@@ -56,5 +63,12 @@ public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInbou
         }
         ctx.close();
         super.exceptionCaught(ctx, cause);
+    }
+
+    public void closeChannel(){
+        if (channel != null && channel.isActive()){
+            channel.close().syncUninterruptibly();
+            logger.info("The connection of {} <-> {} is closed.",channel.remoteAddress(),channel.localAddress());
+        }
     }
 }

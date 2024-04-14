@@ -15,6 +15,8 @@ public class ProviderProperties {
     private Integer retries;
     @Value("${gsrpc.provider.protocol:kindred}")
     private String protocol;
+    @Value("${gsrpc.provider.host:#{null}}")
+    private String host;
     @Value("${gsrpc.provider.port:20688}")
     private Integer port;
     @Value("${gsrpc.provider.serialization:kryo}")
@@ -80,6 +82,14 @@ public class ProviderProperties {
         this.accepts = accepts;
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
     /**
      * just for test, fixme
      * @return
@@ -90,9 +100,11 @@ public class ProviderProperties {
                 "timeout=" + timeout +
                 ", retries=" + retries +
                 ", protocol='" + protocol + '\'' +
+                ", host='" + host + '\'' +
                 ", port=" + port +
                 ", serialization='" + serialization + '\'' +
                 ", weight=" + weight +
+                ", accepts=" + accepts +
                 '}';
     }
 }

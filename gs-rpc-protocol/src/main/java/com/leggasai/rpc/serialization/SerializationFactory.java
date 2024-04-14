@@ -34,7 +34,7 @@ public class SerializationFactory {
             case FSTSERIALIZE:
                 return FST_SERIALIZATION_INSTANCE;
             default:
-                return new HessianSerialization();
+                return HESSIAN_SERIALIZATION_INSTANCE;
         }
     }
 }

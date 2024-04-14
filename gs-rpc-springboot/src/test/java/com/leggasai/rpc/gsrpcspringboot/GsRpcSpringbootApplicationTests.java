@@ -3,6 +3,9 @@ package com.leggasai.rpc.gsrpcspringboot;
 import com.leggasai.rpc.client.discovery.DiscoveryBeanPostProcessor;
 import com.leggasai.rpc.client.discovery.DiscoveryCenter;
 import com.leggasai.rpc.client.invoke.InvocationManager;
+import com.leggasai.rpc.client.invoke.Invoker;
+import com.leggasai.rpc.client.netty.ConnectionPoolManager;
+import com.leggasai.rpc.client.netty.handler.AbstractClientChannelHandler;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.common.beans.RpcURL;
@@ -14,6 +17,8 @@ import com.leggasai.rpc.config.RegistryProperties;
 import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
+import com.leggasai.rpc.gsrpcspringboot.consumer.service.CacheService;
 import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
@@ -37,6 +42,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -240,6 +246,12 @@ class GsRpcSpringbootApplicationTests {
             System.out.println(rpcURL3.getHost());
             System.out.println(rpcURL3.getPort());
             System.out.println(rpcURL3.getParameters());
+            RpcURL rpcURL4 = new RpcURL("fe80::2654:8a7d:34d4:5b92?version=5");
+            System.out.println(rpcURL4);
+            System.out.println(rpcURL4.getHost());
+            System.out.println(rpcURL4.getPort());
+            System.out.println(rpcURL4.getParameters());
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -441,5 +453,66 @@ class GsRpcSpringbootApplicationTests {
         System.out.println(NetUtil.getLocalAddress());
         System.out.println(NetUtil.getLocalHost());
         System.out.println(NetUtil.getLocalHostName());
+        try {
+            Thread.sleep(5000);
+        }catch (InterruptedException e){}
+    }
+
+
+
+    @Test
+    public void connectionPoolTest(){
+        ConnectionPoolManager connectionPoolManager = context.getBean(ConnectionPoolManager.class);
+        DiscoveryCenter discoveryCenter = context.getBean(DiscoveryCenter.class);
+        AbstractClientChannelHandler managerHandler = connectionPoolManager.getHandler(new Invoker("192.168.241.1:20888"));
+        System.out.println(managerHandler);
+    }
+
+    @Test
+    public void connectionPoolSystemTest(){
+        ConnectionPoolManager connectionPoolManager = context.getBean(ConnectionPoolManager.class);
+        AbstractClientChannelHandler managerHandler = connectionPoolManager.getHandler(new Invoker("192.168.241.1:20888"));
+    }
+
+    @Test
+    public void systemTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        CacheService cacheService = context.getBean(CacheService.class);
+        System.out.println(demoService);
+        System.out.println(cacheService);
+        demoService.helloTest("123");
+    }
+
+    @Test
+    public void concurrentTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        HelloServiceImpl helloService = context.getBean(HelloServiceImpl.class);
+        HelloServiceImplV2 helloService2 = context.getBean(HelloServiceImplV2.class);
+        ExecutorService executorService = Executors.newFixedThreadPool(100);
+
+        // 1000个线程，同时调用1000次方法 demoService.test()
+        int threadCount = 1000;
+        int invokeCount = 1000;
+
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            executorService.submit(()->{
+                long start = System.currentTimeMillis();
+                System.out.println(String.format("Thread{%d} start at {%s}",index,start));
+                for (int j = 0; j < invokeCount; j++) {
+                    String rpcResult = demoService.helloTest(String.valueOf(j));
+                    String localResult = helloService.hello(String.valueOf(j));
+                    assert rpcResult.equals(localResult);
+                }
+                long end = System.currentTimeMillis();
+                System.out.println(String.format("Thread{%d} end at {%s}, cost:{%d}",index,end,end-start));
+            });
+        }
+        executorService.shutdown(); // 关闭线程池的提交
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // 等待所有任务执行完成
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 重新设置中断状态
+        }
     }
 }

@@ -47,6 +47,7 @@ public class DiscoveryServiceListener implements CuratorCacheListener {
             }
 
         }
+        // fixme
         System.out.println("--------------------------------");
         discoveryCenter.getService();
     }

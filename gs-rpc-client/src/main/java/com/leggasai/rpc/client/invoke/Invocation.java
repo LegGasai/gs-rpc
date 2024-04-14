@@ -2,6 +2,7 @@ package com.leggasai.rpc.client.invoke;
 
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.enums.ResponseType;
+import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.utils.Snowflake;
 
 /**
@@ -15,6 +16,8 @@ public class Invocation {
     private long startTime;
     private long endTime;
     private boolean isSuccess;
+
+    private SerializationType serializationType;
 
     private Long requestId;
 
@@ -66,5 +69,13 @@ public class Invocation {
 
     public Long getRequestId() {
         return requestId;
+    }
+
+    public SerializationType getSerializationType() {
+        return serializationType;
+    }
+
+    public void setSerializationType(SerializationType serializationType) {
+        this.serializationType = serializationType;
     }
 }

@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-04-03-15:01
- * @Description: 自定义的简易URL
+ * @Description: 自定义的简易URL,表示服务提供者的信息
  * e.g. 127.0.0.1:8899?version=5&timeout=6000
  * e.g. 127.0.0.1:8899
  * e.g. 127.0.0.1
@@ -43,15 +43,20 @@ public class RpcURL {
         }
     }
 
+
+    /**
+     * URL不应该没有端口号
+     * @param address
+     */
     private void setAddress(String address){
-        String[] split = address.split(":");
-        if (split.length == 1){
-            this.host = split[0];
-        }else if (split.length == 2){
-            this.host = split[0];
-            this.port = Integer.parseInt(split[1]);
+        int splitIndex = address.lastIndexOf(":");
+        if (splitIndex<0){
+            throw new IllegalArgumentException("Invalid Ip Address, maybe there is no port");
         }else{
-            throw new IllegalArgumentException("Invalid address");
+            this.host = address.substring(0,splitIndex);
+            if (splitIndex < address.length() - 1){
+                this.port = Integer.valueOf(address.substring(splitIndex+1));
+            }
         }
     }
 
@@ -126,6 +131,4 @@ public class RpcURL {
             return sb.toString();
         }
     }
-
-
 }

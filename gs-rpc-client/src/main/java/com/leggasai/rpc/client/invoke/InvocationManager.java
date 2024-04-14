@@ -1,13 +1,27 @@
 package com.leggasai.rpc.client.invoke;
 
+import com.leggasai.rpc.client.discovery.DiscoveryCenter;
+import com.leggasai.rpc.client.netty.ConnectionPoolManager;
+import com.leggasai.rpc.client.netty.handler.AbstractClientChannelHandler;
+import com.leggasai.rpc.client.route.loadBalance.LoadBalance;
+import com.leggasai.rpc.client.route.loadBalance.LoadBalanceFactory;
+import com.leggasai.rpc.client.route.loadBalance.LoadBalanceType;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.config.ConsumerProperties;
+import com.leggasai.rpc.constants.Separator;
+import com.leggasai.rpc.exception.ErrorCode;
+import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import io.protostuff.Rpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +52,15 @@ public class InvocationManager {
      * 调用信息Map
      */
     private final Map<Long, Invocation> invocationMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    private ConnectionPoolManager connectionPoolManager;
+
+    @Autowired
+    private DiscoveryCenter discoveryCenter;
+
+    @Autowired
+    private ConsumerProperties consumerProperties;
     /**
      * rpc完成, unThreadsafe
      * @param requestId
@@ -71,12 +94,24 @@ public class InvocationManager {
     private void executeInvocation(RpcRequestBody request,CompletableFuture<Object> future){
         Invocation invocation = new Invocation(request);
         invocation.setStartTime(System.currentTimeMillis());
+        invocation.setSerializationType(SerializationType.getByProtocol(consumerProperties.getSerialization()));
         pendingRpcs.put(invocation.getRequestId(),future);
         invocationMap.put(invocation.getRequestId(),invocation);
         // 负载均衡 选出handler invocation.setHandler
-
-        // 获取handler 并 向handler发送request
-
+        String serviceKey = request.getService() + Separator.SERVICE_SPLIT + request.getVersion();
+        List<Invoker> invokers = discoveryCenter.getInvokersByServiceKey(serviceKey);
+        if (CollectionUtils.isEmpty(invokers)){
+            logger.error("InvocationManager: No invokers found for serviceKey:{}",serviceKey);
+            future.completeExceptionally(new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage()));
+            pendingRpcs.remove(invocation.getRequestId(),future);
+            invocationMap.remove(invocation.getRequestId(),invocation);
+            return;
+        }
+        LoadBalance loadBalance = LoadBalanceFactory.getLoadBalance(LoadBalanceType.getByType(consumerProperties.getLoadBalance()));
+        Invoker invoker = loadBalance.select(invokers);
+        invocation.setInvoker(invoker);
+        AbstractClientChannelHandler channelHandler = connectionPoolManager.getHandler(invoker);
+        channelHandler.invoke(invocation);
     }
 
     /**
