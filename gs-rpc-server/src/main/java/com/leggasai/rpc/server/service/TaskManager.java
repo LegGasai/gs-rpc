@@ -67,8 +67,6 @@ public class TaskManager {
     }
 
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
-        // 这里需要抛出各种异常
-        // Thread.sleep(5000);
         if (request == null){
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }

@@ -477,10 +477,18 @@ class GsRpcSpringbootApplicationTests {
     @Test
     public void systemTest(){
         DemoService demoService = context.getBean(DemoService.class);
-        CacheService cacheService = context.getBean(CacheService.class);
-        System.out.println(demoService);
-        System.out.println(cacheService);
+        try {
+            Thread.sleep(100);
+        }catch (InterruptedException e){}
+
+        long start = System.currentTimeMillis();
+        System.out.println("开始:"+start);
         demoService.helloTest("123");
+        System.out.println("结束:"+(System.currentTimeMillis()));
+        start = System.currentTimeMillis();
+        System.out.println("开始:"+start);
+        demoService.helloTest("123");
+        System.out.println("结束:"+(System.currentTimeMillis()));
     }
 
     @Test
@@ -490,22 +498,21 @@ class GsRpcSpringbootApplicationTests {
         HelloServiceImplV2 helloService2 = context.getBean(HelloServiceImplV2.class);
         ExecutorService executorService = Executors.newFixedThreadPool(100);
 
-        // 1000个线程，同时调用1000次方法 demoService.test()
-        int threadCount = 1000;
+        // 32个线程，同时调用1000次方法 demoService.test()
+        int threadCount = 32;
         int invokeCount = 1000;
 
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             executorService.submit(()->{
                 long start = System.currentTimeMillis();
-                System.out.println(String.format("Thread{%d} start at {%s}",index,start));
                 for (int j = 0; j < invokeCount; j++) {
                     String rpcResult = demoService.helloTest(String.valueOf(j));
                     String localResult = helloService.hello(String.valueOf(j));
                     assert rpcResult.equals(localResult);
                 }
                 long end = System.currentTimeMillis();
-                System.out.println(String.format("Thread{%d} end at {%s}, cost:{%d}",index,end,end-start));
+                System.out.println(String.format("Thread{%d} start at {%s} ,end at {%s}, cost:{%d}, ops:{%d}",index,start,end,end-start,invokeCount*1000/(end-start)));
             });
         }
         executorService.shutdown(); // 关闭线程池的提交

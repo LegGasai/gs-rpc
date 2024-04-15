@@ -6,4 +6,5 @@ package com.leggasai.rpc.client.invoke;
  */
 public class StatisticsCenter {
 
+    // todo
 }

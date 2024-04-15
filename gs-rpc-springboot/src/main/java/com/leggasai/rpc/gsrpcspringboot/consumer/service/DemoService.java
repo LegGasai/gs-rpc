@@ -30,4 +30,8 @@ public class DemoService {
     public String helloTest2(String name){
         return helloService2.hello(name);
     }
+
+    public void show(){
+        helloService.show();
+    }
 }

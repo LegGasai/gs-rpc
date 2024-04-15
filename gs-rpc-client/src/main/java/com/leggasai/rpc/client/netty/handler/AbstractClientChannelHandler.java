@@ -53,6 +53,7 @@ public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInbou
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent){
             // 发送心跳
+            // todo
         }
     }
 

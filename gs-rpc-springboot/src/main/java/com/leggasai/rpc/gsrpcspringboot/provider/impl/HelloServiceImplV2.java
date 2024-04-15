@@ -19,4 +19,9 @@ public class HelloServiceImplV2 implements HelloService {
     public Integer add(Integer a, Integer b) {
         return (a+b) * 2;
     }
+
+    @Override
+    public void show() {
+
+    }
 }

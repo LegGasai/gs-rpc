@@ -74,7 +74,7 @@ public class InvocationManager {
             // todo 将invocatio发送给StatisticsCenter统计调用信息
             pendingRpcs.remove(requestId,future);
             invocationMap.remove(requestId,invocation);
-            logger.info("Invocation Manager: RPC requestId :{} has finished with response:{}",requestId,response);
+            logger.info("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
         }else{
             logger.error("Invocation Manager has no such RPC requestId :{}", requestId);
         }

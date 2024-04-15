@@ -20,11 +20,17 @@ public class KindredClientChannelHandler extends AbstractClientChannelHandler<Ki
     public void invoke(Invocation invocation) {
         Kindred kindred = new Kindred();
         kindred.setRequestId(invocation.getRequestId());
-        // bit info
         kindred.setRequest();
         kindred.setNoEvent();
         kindred.setSerialize(invocation.getSerializationType());
         kindred.setRequestBody(invocation.getRequest());
-        this.channel.writeAndFlush(kindred);
+        try {
+            // todo 第一次写入耗时异常。尝试建立连接后，立马发送一次心跳试试
+            System.out.println("ClientChannelHandler invoke:"+(System.currentTimeMillis()));
+            this.channel.writeAndFlush(kindred).sync();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("ClientChannelHandler write:"+(System.currentTimeMillis()));
     }
 }
