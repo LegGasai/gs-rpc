@@ -21,7 +21,7 @@ gsrpc:
     loadbalance: random
     protocol: kindred
     port: -1
-    serialization: kryo
+    serialization: hessian
 
   registry:
     host: 127.0.0.1

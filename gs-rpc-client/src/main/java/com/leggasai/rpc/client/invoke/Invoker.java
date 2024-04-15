@@ -9,6 +9,8 @@ import java.util.Objects;
  * @Date: 2024-04-03-10:19
  * @Description: 服务提供者信息
  */
+
+// fixme Invoker的地址和端口号时不可变的，但可以修改其属性
 public class Invoker {
 
     private static final String WEIGHT_KEY = "weight";
