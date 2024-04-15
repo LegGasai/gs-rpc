@@ -58,6 +58,10 @@ public class KindredDecoder extends ByteToMessageDecoder {
             kindred.setStatus(status);
             kindred.setRequestId(requestId);
             kindred.setLength(length);
+            if (kindred.getSerializeId() != this.serialization.getSerializeId()){
+                logger.error("KindredDecoder解析异常，客户端与服务端序列化方式不一致，client:{},server:{}",SerializationType.getBySerializeId(kindred.getSerializeId()).getSerializeProtocol(),this.serialization.getSerializeProtocol());
+                throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
+            }
             if (kindred.isRequest()){
                 kindred.setRequestBody((RpcRequestBody) serializer.deserialize(bytes, RpcRequestBody.class));
             }else{

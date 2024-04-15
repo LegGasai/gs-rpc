@@ -108,7 +108,7 @@ public class InvocationManager {
             return;
         }
         LoadBalance loadBalance = LoadBalanceFactory.getLoadBalance(LoadBalanceType.getByType(consumerProperties.getLoadBalance()));
-        Invoker invoker = loadBalance.select(invokers);
+        Invoker invoker = loadBalance.select(invokers,invocation);
         invocation.setInvoker(invoker);
         AbstractClientChannelHandler channelHandler = connectionPoolManager.getHandler(invoker);
         channelHandler.invoke(invocation);

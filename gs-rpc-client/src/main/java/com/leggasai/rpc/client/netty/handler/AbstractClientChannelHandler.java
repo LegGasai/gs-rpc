@@ -3,6 +3,8 @@ package com.leggasai.rpc.client.netty.handler;
 import com.leggasai.rpc.client.invoke.Invocation;
 import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.exception.RpcException;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -41,6 +43,7 @@ public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInbou
         Channel channel = ctx.channel();
         this.channel = channel;
         logger.info("The connection of {} <-> {} is established.",channel.remoteAddress(),channel.localAddress());
+        sendHeartBeat();
         super.channelActive(ctx);
     }
 
@@ -53,8 +56,15 @@ public abstract class AbstractClientChannelHandler<T> extends SimpleChannelInbou
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent){
             // 发送心跳
-            // todo
+            sendHeartBeat();
         }
+    }
+
+    private void sendHeartBeat(){
+        ByteBuf heartBeatBuf = Unpooled.buffer(2); // 2字节的容量
+        heartBeatBuf.writeShort(0xB6B6);
+        this.channel.writeAndFlush(heartBeatBuf);
+        logger.info("ClientChannelHandler: Send a heartbeat to server");
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.leggasai.rpc.serialization.protostuff;
 
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.enums.ResponseType;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 
@@ -24,7 +25,7 @@ public class ProtostuffCache {
 
     static {
         schemaCache.put(RpcRequestBody.class,RuntimeSchema.createFrom(RpcRequestBody.class));
-        schemaCache.put(RpcResponseBody.class,RuntimeSchema.createFrom(RpcRequestBody.class));
+        schemaCache.put(RpcResponseBody.class,RuntimeSchema.createFrom(RpcResponseBody.class));
         schemaCache.put(HashMap.class,RuntimeSchema.createFrom(RpcRequestBody.class));
         schemaCache.put(Object[].class,RuntimeSchema.createFrom(RpcRequestBody.class));
         schemaCache.put(Class[].class,RuntimeSchema.createFrom(RpcRequestBody.class));

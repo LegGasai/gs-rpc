@@ -154,8 +154,8 @@ public class Kindred implements Serializable {
         return (byte) ((bitInfo & IS_EVENT_MASK) >> 5);
     }
 
-    public byte getSerializeId(){
-        return (byte) (bitInfo & SERIALIZE_MASK);
+    public int getSerializeId(){
+        return  (byte)(bitInfo & SERIALIZE_MASK);
     }
 
     public Boolean isRequest() {

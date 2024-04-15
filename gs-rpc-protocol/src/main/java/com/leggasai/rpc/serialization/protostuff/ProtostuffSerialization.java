@@ -14,7 +14,6 @@ public class ProtostuffSerialization implements RpcSerialization {
 
 
 
-
     @Override
     public <T> byte[] serialize(T obj) {
         Schema<T> schema = ProtostuffCache.getSchema((Class<T>)obj.getClass());

@@ -37,7 +37,6 @@ public class KindredEncoder extends MessageToByteEncoder<Kindred> {
             byteBuf.writeByte(kindred.getBitInfo());
             byteBuf.writeByte(kindred.getStatus());
             byteBuf.writeLong(kindred.getRequestId());
-
             byte[] body = null;
             if (kindred.isRequest()){
                 body = this.serializer.serialize(kindred.getRequestBody());
@@ -50,6 +49,5 @@ public class KindredEncoder extends MessageToByteEncoder<Kindred> {
             logger.error("KindredEncoder在编码时出现异常",e);
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }
-
     }
 }
