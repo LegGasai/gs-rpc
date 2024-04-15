@@ -22,6 +22,7 @@ import com.leggasai.rpc.gsrpcspringboot.consumer.service.CacheService;
 import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
+import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
 import com.leggasai.rpc.protocol.kindred.Kindred;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
@@ -478,17 +479,24 @@ class GsRpcSpringbootApplicationTests {
     public void systemTest(){
         DemoService demoService = context.getBean(DemoService.class);
         CacheService cacheService = context.getBean(CacheService.class);
-        System.out.println(demoService);
-        System.out.println(cacheService);
+
+        System.out.println(System.currentTimeMillis());
         demoService.helloTest("123");
+        System.out.println(System.currentTimeMillis());
+        System.out.println(System.currentTimeMillis());
+        demoService.helloTest("123");
+        System.out.println(System.currentTimeMillis());
+
     }
+
+
 
     @Test
     public void concurrentTest(){
         DemoService demoService = context.getBean(DemoService.class);
         HelloServiceImpl helloService = context.getBean(HelloServiceImpl.class);
         HelloServiceImplV2 helloService2 = context.getBean(HelloServiceImplV2.class);
-        ExecutorService executorService = Executors.newFixedThreadPool(100);
+        ExecutorService executorService = Executors.newFixedThreadPool(1000);
 
         // 1000个线程，同时调用1000次方法 demoService.test()
         int threadCount = 1000;
@@ -515,4 +523,18 @@ class GsRpcSpringbootApplicationTests {
             Thread.currentThread().interrupt(); // 重新设置中断状态
         }
     }
+
+    @Test
+    public void heartBeatTest(){
+        try {
+            // we can see client send heartbeat 4 times and server ack 4 times(1 time for startup and 3 times for idle-check)
+            // Extend by 15 seconds to avoid the test ending before receiving the third heartbeat.
+            Thread.sleep(HeartBeat.HEARTBEAT_INTERVAL * 3 + 15);
+        }catch (InterruptedException e){
+
+        }
+    }
+
+
+
 }

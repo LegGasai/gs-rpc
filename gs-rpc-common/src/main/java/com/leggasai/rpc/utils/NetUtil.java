@@ -1,6 +1,5 @@
 package com.leggasai.rpc.utils;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -251,17 +250,6 @@ public final class NetUtil {
                 && IP_PATTERN.matcher(name).matches()
                 && !ANYHOST_VALUE.equals(name)
                 && !LOCALHOST_VALUE.equals(name));
-    }
-
-
-
-
-
-    public static void main(String[] args) {
-        System.out.println(getLocalHost());
-        System.out.println(getLocalHostName());
-        System.out.println(getLocalAddress());
-
     }
 
 }

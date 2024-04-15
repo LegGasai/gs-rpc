@@ -1,5 +1,6 @@
 package com.leggasai.rpc.client.route.loadBalance.impl;
 
+import com.leggasai.rpc.client.invoke.Invocation;
 import com.leggasai.rpc.client.invoke.Invoker;
 import com.leggasai.rpc.client.route.loadBalance.LoadBalance;
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 public class WeightedRandomLoadBalance implements LoadBalance {
     @Override
-    public Invoker select(List<Invoker> invokers) {
+    public Invoker select(List<Invoker> invokers, Invocation invocation) {
 
         return invokers.get(0);
     }

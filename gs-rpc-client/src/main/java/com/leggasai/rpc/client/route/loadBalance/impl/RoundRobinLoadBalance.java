@@ -1,5 +1,6 @@
 package com.leggasai.rpc.client.route.loadBalance.impl;
 
+import com.leggasai.rpc.client.invoke.Invocation;
 import com.leggasai.rpc.client.invoke.Invoker;
 import com.leggasai.rpc.client.route.loadBalance.LoadBalance;
 import org.springframework.util.CollectionUtils;
@@ -19,7 +20,7 @@ public class RoundRobinLoadBalance implements LoadBalance {
     private static ConcurrentHashMap<Invoker,Integer> lastWeightMap = new ConcurrentHashMap<>();
 
     @Override
-    public Invoker select(List<Invoker> invokers) {
+    public Invoker select(List<Invoker> invokers, Invocation invocation) {
         if (CollectionUtils.isEmpty(invokers)){
             return null;
         }

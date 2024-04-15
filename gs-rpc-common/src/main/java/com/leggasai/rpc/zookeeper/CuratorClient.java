@@ -55,6 +55,7 @@ public class CuratorClient {
                 logger.error("Curator client连接Zookeeper失败,url:{}",url);
             }
         }catch (Exception e){
+            logger.error("Curator client连接Zookeeper失败,url:{}",e);
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
