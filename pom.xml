@@ -15,6 +15,7 @@
         <module>gs-rpc-common</module>
         <module>gs-rpc-springboot</module>
         <module>gs-rpc-test</module>
+        <module>gs-rpc-all</module>
     </modules>
 
     <properties>

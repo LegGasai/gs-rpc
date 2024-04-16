@@ -70,7 +70,7 @@ public class NettyServer{
         try {
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
             localAddress = (InetSocketAddress) channelFuture.channel().localAddress();
-            logger.info("NettyServer startup successfully in {}",localAddress);
+            logger.info("NettyServer startup successfully in {}, and export in {}:{}",localAddress,NetUtil.getLocalHost(),localAddress.getPort());
             // 注册服务
             // todo 优化
             RpcURL rpcURL = new RpcURL();
