@@ -1,7 +1,11 @@
 package com.leggasai.rpc.gsrpcspringboot.provider.impl;
 
 import com.leggasai.rpc.annotation.GsService;
+import com.leggasai.rpc.enums.ResponseStatus;
 import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
+import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
+
+import java.util.Date;
 
 /**
  * @Author: Jiang Yichen
@@ -24,4 +28,12 @@ public class HelloServiceImpl implements HelloService {
     public void show() {
 
     }
+
+    @Override
+    public Order getOrder(Order order) {
+        order.setStatus(ResponseStatus.OK);
+        return order;
+    }
+
+
 }

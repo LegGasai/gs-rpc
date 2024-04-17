@@ -18,12 +18,16 @@ import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
+import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
 import com.leggasai.rpc.gsrpcspringboot.consumer.service.CacheService;
 import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
 import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
 import com.leggasai.rpc.protocol.kindred.Kindred;
+import com.leggasai.rpc.serialization.RpcSerialization;
+import com.leggasai.rpc.serialization.SerializationAdapter;
+import com.leggasai.rpc.serialization.SerializationFactory;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
 import com.leggasai.rpc.server.service.ServiceManager;
@@ -33,6 +37,7 @@ import com.leggasai.rpc.threadpool.FixedThreadPool;
 import com.leggasai.rpc.utils.NetUtil;
 import com.leggasai.rpc.utils.Snowflake;
 import com.sun.org.apache.bcel.internal.generic.NEW;
+
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.function.Try;
 import org.springframework.beans.factory.BeanFactory;
@@ -45,9 +50,7 @@ import org.springframework.util.Assert;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 @SpringBootTest
@@ -488,6 +491,35 @@ class GsRpcSpringbootApplicationTests {
         demoService.helloTest("123");
         System.out.println(System.currentTimeMillis());
 
+    }
+
+    @Test
+    public void dtoTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        Order order = new Order();
+        order.setOrderId(123456L);
+        HashSet<String> set = new HashSet<>();
+        set.add("商品1");
+        set.add("商品2");
+        order.setProductsSet(set);
+
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put("商品1", 1);
+        map.put("商品2", 2);
+        order.setProductsCountMap(map);
+
+        order.setProductsList(Arrays.asList("商品1","商品2"));
+        order.setCreateTime(new Date());
+
+        RpcSerialization serialize = SerializationFactory.getSerialize(SerializationType.KRYOSERIALIZE);
+        byte[] bytes = serialize.serialize(order);
+        Object deserialize = serialize.deserialize(bytes, Order.class);
+        System.out.println(deserialize);
+        //long start = System.currentTimeMillis();
+        //Order result = demoService.getOrder(order);
+        //long end = System.currentTimeMillis();
+        //System.out.println(result);
+        //System.out.println("耗时:"+(end-start));
     }
 
 

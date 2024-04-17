@@ -2,6 +2,7 @@ package com.leggasai.rpc.gsrpcspringboot.provider.impl;
 
 import com.leggasai.rpc.annotation.GsService;
 import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
+import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
 
 /**
  * @Author: Jiang Yichen
@@ -23,5 +24,10 @@ public class HelloServiceImplV2 implements HelloService {
     @Override
     public void show() {
 
+    }
+
+    @Override
+    public Order getOrder(Order order) {
+        return null;
     }
 }
