@@ -40,32 +40,68 @@ public class TaskManager {
     private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test-demo",16,16,60 * 1000);
     private final AtomicInteger taskCount = new AtomicInteger(0);
     //private final ConcurrentHashMap<CompletableFuture<RpcResponseBody>,Long> pendingTasks = new ConcurrentHashMap<>();
-    //private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("test-demo",1);
-    // 超时机制 todo
+    private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("test-demo",2);
+    // 超时 & 重试机制 todo
     public CompletableFuture<RpcResponseBody> submit(RpcRequestBody request){
         try {
             taskCount.incrementAndGet();
-            CompletableFuture<RpcResponseBody> task = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return handle(request);
-                } catch (RpcException e) {
-                    logger.error("TaskManager execute error", e);
-                    return RpcResponseBody.failWithException(e);
+//            CompletableFuture<RpcResponseBody> task = CompletableFuture.supplyAsync(() -> {
+//                try {
+//                    return handle(request);
+//                } catch (RpcException e) {
+//                    logger.error("TaskManager execute error", e);
+//                    return RpcResponseBody.failWithException(e);
+//                }
+//            }, executor);
+
+            CompletableFuture<RpcResponseBody> task = new CompletableFuture<>();
+            // 任务执行超时监听
+            ScheduledFuture<?> scheduledFuture = scheduler.schedule(() -> {
+                if (!task.isDone()) {
+                    logger.warn("TaskManager task execution may timeout in {} ms and be cancelled",providerProperties.getTimeout());
+                    task.complete(RpcResponseBody.failWithException(new RpcException(ErrorCode.SERVER_TIMEOUT.getCode(), ErrorCode.SERVER_TIMEOUT.getMessage())));
                 }
-            }, executor);
-            // pendingTasks.put(task,System.currentTimeMillis());
+            }, providerProperties.getTimeout(), TimeUnit.MILLISECONDS);
+
+            // 任务完成监听
+            task.whenComplete((response, throwable) -> {
+                scheduledFuture.cancel(false);
+                taskCount.decrementAndGet();
+            });
+            // 任务执行——线程池
+            executeWithRetry(task, request, providerProperties.getRetries(), null);
             return task;
         }catch (RejectedExecutionException e){
             RpcException exception = new RpcException(ErrorCode.SERVER_LIMIT_RATE.getCode(), ErrorCode.SERVER_LIMIT_RATE.getMessage());
             logger.error("TaskManager exceed limit",e);
-            return CompletableFuture.completedFuture(RpcResponseBody.failWithException(exception));
-        }finally {
             taskCount.decrementAndGet();
+            return CompletableFuture.completedFuture(RpcResponseBody.failWithException(exception));
         }
-
-
     }
 
+    private void executeWithRetry(CompletableFuture<RpcResponseBody> task, RpcRequestBody request, int retry, RpcException lastException){
+        executor.execute(()->{
+            if (retry < 0){
+                logger.error("TaskManager task execution fails after {} retries, the last exception",providerProperties.getRetries(),lastException);
+                task.complete(RpcResponseBody.failWithException(new RpcException(ErrorCode.SERVICE_ERROR.getCode(),ErrorCode.SERVICE_ERROR.getMessage(),lastException)));
+                return;
+            }
+            try{
+                RpcResponseBody responseBody = handle(request);
+                task.complete(responseBody);
+            }catch (RpcException e){
+                logger.error("TaskManager task execution error with retry :{}", retry,e);
+                executeWithRetry(task,request,retry-1,e);
+            }
+        });
+    }
+
+    /**
+     * 执行Request
+     * @param request
+     * @return
+     * @throws RpcException:封装了执行时的各种异常
+     */
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
         if (request == null){
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
@@ -94,23 +130,29 @@ public class TaskManager {
             throw new RpcException(ErrorCode.METHOD_NOT_FOUND.getCode(),ErrorCode.METHOD_NOT_FOUND.getMessage(),e.getCause());
         } catch (InvocationTargetException e) {
             throw new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage(),e.getTargetException());
+        } catch (Exception e){
+            // 异常兜底
+            throw new RpcException(ErrorCode.SERVER_ERROR.getCode(), ErrorCode.SERVER_ERROR.getMessage(),e);
         }
     }
 
     public void shutdown(){
         executor.shutdown();
+        scheduler.shutdown();
         if (taskCount.get() > 0){
             logger.warn("TaskManager waiting for shutdown..., and the number of running tasks is {}", taskCount.get());
             try {
                 if (!executor.awaitTermination(SHUTDOWN_TIMEOUT, TimeUnit.MILLISECONDS)) {
                     logger.info("TaskManager time out shutdown, the number of unfinished tasks is {}", taskCount.get());
                     executor.shutdownNow();
+                    scheduler.shutdownNow();
                 }else{
                     logger.info("TaskManager has shutdown successfully after all tasks finished.");
                 }
             } catch (InterruptedException e) {
                 logger.info("TaskManager shutdown error and is forcing to shutdown, the number of unfinished tasks is {}", taskCount.get());
                 executor.shutdownNow();
+                scheduler.shutdownNow();
             }
         }else{
             logger.info("TaskManager has shutdown successfully after all tasks finished.");

@@ -34,4 +34,9 @@ public class DemoService {
     public void show(){
         helloService.show();
     }
+
+    public void timeout(){
+        helloService.timeout();
+    }
+
 }

@@ -6,4 +6,6 @@ public interface HelloService {
     Integer add(Integer a,Integer b);
 
     void show();
+
+    void timeout();
 }

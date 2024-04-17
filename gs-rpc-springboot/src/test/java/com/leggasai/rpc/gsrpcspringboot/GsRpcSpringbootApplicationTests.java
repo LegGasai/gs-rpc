@@ -536,5 +536,18 @@ class GsRpcSpringbootApplicationTests {
     }
 
 
+    @Test
+    public void clientTimeoutTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        demoService.timeout();
+        try {
+            Thread.sleep(15000);
+        }catch (InterruptedException e){
+
+        }
+        System.out.println("测试结束");
+    }
+
+
 
 }
