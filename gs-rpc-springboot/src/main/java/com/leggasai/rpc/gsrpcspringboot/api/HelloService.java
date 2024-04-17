@@ -11,5 +11,9 @@ public interface HelloService {
 
     void show();
 
+
     Order getOrder(Order order);
+
+    void timeout();
+
 }

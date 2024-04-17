@@ -26,7 +26,18 @@ public class HelloServiceImpl implements HelloService {
 
     @Override
     public void show() {
+        throw new ArrayIndexOutOfBoundsException();
+    }
 
+    @Override
+    public void timeout() {
+        try {
+            Thread.sleep(300);
+            throw new ArrayIndexOutOfBoundsException();
+        } catch (InterruptedException e) {
+
+        }
+        System.out.println("version null");
     }
 
     @Override

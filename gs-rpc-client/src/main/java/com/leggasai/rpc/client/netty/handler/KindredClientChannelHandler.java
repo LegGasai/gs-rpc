@@ -25,7 +25,5 @@ public class KindredClientChannelHandler extends AbstractClientChannelHandler<Ki
         kindred.setSerialize(invocation.getSerializationType());
         kindred.setRequestBody(invocation.getRequest());
         this.channel.writeAndFlush(kindred);
-        System.out.println("invoke return:"+System.currentTimeMillis());
-
     }
 }

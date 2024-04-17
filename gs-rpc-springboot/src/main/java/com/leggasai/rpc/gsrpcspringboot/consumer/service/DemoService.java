@@ -37,7 +37,14 @@ public class DemoService {
         helloService.show();
     }
 
+
     public Order getOrder(Order order){
         return  helloService.getOrder(order);
     }
+
+    public void timeout(){
+        helloService.timeout();
+    }
+
+
 }

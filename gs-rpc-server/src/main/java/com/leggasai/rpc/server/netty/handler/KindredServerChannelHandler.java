@@ -25,7 +25,6 @@ public class KindredServerChannelHandler extends AbstractServerChannelHandler<Ki
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Kindred kindred) throws Exception {
-        System.out.println("ServerChannelHandler:"+(System.currentTimeMillis()));
         CompletableFuture<RpcResponseBody> future = submitTask(kindred.getRequestBody());
         future.thenAccept((response)->{
             transform(kindred,response);

@@ -30,4 +30,13 @@ public class HelloServiceImplV2 implements HelloService {
     public Order getOrder(Order order) {
         return null;
     }
+
+    public void timeout() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+
+        }
+        System.out.println("version2.0");
+    }
 }
