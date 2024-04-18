@@ -15,11 +15,14 @@ import java.util.HashMap;
 /**
  * @Author: Jiang Yichen
  * @Date: 2024-03-28-22:26
- * @Description:
+ * @Description: Kryo Pool工厂（单例）
  */
 public class KryoPoolFactory {
     private static volatile KryoPoolFactory poolFactory = null;
 
+    /**
+     * 对象池解决线程安全问题
+     */
     private Pool<Kryo> pool = new Pool(true, false, 8) {
         @Override
         public Kryo create() {

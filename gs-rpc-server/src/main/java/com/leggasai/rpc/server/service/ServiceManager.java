@@ -5,6 +5,7 @@ import com.leggasai.rpc.common.beans.ServiceMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.cglib.reflect.FastClass;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class ServiceManager implements ApplicationContextAware {
      * ServiceKey -> ServiceObject
      */
     private Map<String,Object> servicesMap = new HashMap<String,Object>();
+    private Map<String,FastClass> services2FastClass = new HashMap<String,FastClass>();
 
     private Set<ServiceMeta> serviceMetaSet = new HashSet<ServiceMeta>();
 
@@ -42,6 +44,9 @@ public class ServiceManager implements ApplicationContextAware {
 
     public void cacheService(ServiceMeta serviceMeta,Object implObj){
         servicesMap.put(serviceMeta.getServiceKey(),implObj);
+        Class<?> serviceClazz = implObj.getClass();
+        FastClass serviceFastClass = FastClass.create(serviceClazz);
+        services2FastClass.put(serviceMeta.getServiceKey(),serviceFastClass);
         serviceMetaSet.add(serviceMeta);
     }
 
@@ -67,5 +72,9 @@ public class ServiceManager implements ApplicationContextAware {
 
     public Object getService(String serviceKey){
         return servicesMap.get(serviceKey);
+    }
+
+    public FastClass getServiceFastClass(String serviceKey){
+        return services2FastClass.get(serviceKey);
     }
 }

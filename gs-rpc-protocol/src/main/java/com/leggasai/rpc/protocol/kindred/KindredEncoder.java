@@ -27,6 +27,7 @@ public class KindredEncoder extends MessageToByteEncoder<Kindred> {
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, Kindred kindred, ByteBuf byteBuf) throws Exception {
+        long start = System.nanoTime();
         // obj -> byte[]
         try {
             if (!Kindred.isKindred(kindred.getMagic())){
@@ -49,5 +50,7 @@ public class KindredEncoder extends MessageToByteEncoder<Kindred> {
             logger.error("KindredEncoder在编码时出现异常",e);
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }
+        long end = System.nanoTime();
+        System.out.println("Encoder:"+(end - start));
     }
 }

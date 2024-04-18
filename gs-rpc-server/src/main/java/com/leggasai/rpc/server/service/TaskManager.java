@@ -7,6 +7,7 @@ import com.leggasai.rpc.constants.Separator;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
+import com.leggasai.rpc.threadpool.FixedThreadPool;
 import com.leggasai.rpc.threadpool.ScheduledThreadPool;
 import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
@@ -37,10 +38,12 @@ public class TaskManager {
      * 优雅停机等待时间
      */
     private final static int SHUTDOWN_TIMEOUT = 10 * 1000;
-    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test-demo",128,128,60 * 1000);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) FixedThreadPool.getExecutor("TaskManager",200,0);
+
     private final AtomicInteger taskCount = new AtomicInteger(0);
+
     //private final ConcurrentHashMap<CompletableFuture<RpcResponseBody>,Long> pendingTasks = new ConcurrentHashMap<>();
-    private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("test-demo",4);
+    private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("TaskManager-Schedule",8);
     // 超时 & 重试机制 todo
     public CompletableFuture<RpcResponseBody> submit(RpcRequestBody request){
         try {
@@ -76,6 +79,8 @@ public class TaskManager {
             logger.error("TaskManager exceed limit",e);
             taskCount.decrementAndGet();
             return CompletableFuture.completedFuture(RpcResponseBody.failWithException(exception));
+        }finally {
+
         }
     }
 
@@ -93,6 +98,7 @@ public class TaskManager {
                 logger.error("TaskManager task execution error with retry :{}", retry,e);
                 executeWithRetry(task,request,retry-1,e);
             }
+            long end = System.nanoTime();
         });
     }
 
@@ -103,6 +109,7 @@ public class TaskManager {
      * @throws RpcException:封装了执行时的各种异常
      */
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
+        long start = System.currentTimeMillis();
         if (request == null){
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }
@@ -116,9 +123,8 @@ public class TaskManager {
         String method = request.getMethod();
         Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParameters();
-        Class<?> serviceClazz = serviceImpl.getClass();
         try {
-            FastClass serviceFastClass = FastClass.create(serviceClazz);
+            FastClass serviceFastClass = serviceManager.getServiceFastClass(serviceKey);
             FastMethod serviceFastMethod = serviceFastClass.getMethod(method, parameterTypes);
             Object result = serviceFastMethod.invoke(serviceImpl, parameters);
             if (serviceFastMethod.getReturnType() == Void.class){
@@ -134,6 +140,7 @@ public class TaskManager {
             // 异常兜底
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(), ErrorCode.SERVER_ERROR.getMessage(),e);
         }
+
     }
 
     public void shutdown(){

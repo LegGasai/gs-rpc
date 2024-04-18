@@ -14,6 +14,7 @@ import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
+import com.leggasai.rpc.threadpool.FixedThreadPool;
 import io.protostuff.Rpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,8 @@ public class InvocationManager {
     /**
      * 线程池
      */
-    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("invocation-manager",16,16,60 * 1000);
+    //private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("InvocationManager",128,256,60 * 1000,0);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) FixedThreadPool.getExecutor("InvocationManager",256,0);
 
     /**
      * 等待响应的RPC调用
@@ -71,7 +73,7 @@ public class InvocationManager {
             // todo 将invocatio发送给StatisticsCenter统计调用信息
             pendingRpcs.remove(requestId,future);
             invocationMap.remove(requestId,invocation);
-            //logger.info("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
+            logger.debug("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
         }else{
             logger.error("Invocation Manager has no such RPC requestId :{}", requestId);
         }
@@ -83,8 +85,11 @@ public class InvocationManager {
      * @return
      */
     public CompletableFuture<Object> submitRequest(RpcRequestBody request){
+        long start = System.nanoTime();
         CompletableFuture<Object> future = new CompletableFuture<>();
         executor.execute(() -> executeInvocation(request, future));
+        long end = System.nanoTime();
+        System.out.println("submitRequest:"+(end - start));
         return future;
     }
 

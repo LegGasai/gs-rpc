@@ -59,7 +59,7 @@ public class NettyServer{
         SerializationType serialization = SerializationType.getByProtocol(providerProperties.getSerialization());
         bootstrap = new ServerBootstrap();
         bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup(Math.min(Runtime.getRuntime().availableProcessors() + 1,32));
         bootstrap
                 .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)

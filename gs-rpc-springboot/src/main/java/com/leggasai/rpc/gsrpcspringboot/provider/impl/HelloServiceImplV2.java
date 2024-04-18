@@ -13,6 +13,9 @@ import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
 public class HelloServiceImplV2 implements HelloService {
     @Override
     public String hello(String name) {
+        try {
+            Thread.sleep(100);
+        }catch (InterruptedException e){}
         return "Hello " + name + "#version2.0";
     }
 

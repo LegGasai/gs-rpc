@@ -343,7 +343,7 @@ class GsRpcSpringbootApplicationTests {
 
     @Test
     public void taskManagerTimeoutTest(){
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test", 5, 5, 60 * 1000);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test", 5, 5, 60 * 1000,0);
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
@@ -482,16 +482,15 @@ class GsRpcSpringbootApplicationTests {
     @Test
     public void systemTest(){
         DemoService demoService = context.getBean(DemoService.class);
-
-        CacheService cacheService = context.getBean(CacheService.class);
-
-        System.out.println(System.currentTimeMillis());
+        long start = System.nanoTime();
         demoService.helloTest("123");
-        System.out.println(System.currentTimeMillis());
-        System.out.println(System.currentTimeMillis());
+        System.out.println("耗时:"+(System.nanoTime() - start));
+        start = System.nanoTime();
         demoService.helloTest("123");
-        System.out.println(System.currentTimeMillis());
-
+        System.out.println("耗时:"+(System.nanoTime() - start));
+        start = System.nanoTime();
+        demoService.helloTest("123");
+        System.out.println("耗时:"+(System.nanoTime() - start));
     }
 
     @Test
@@ -520,21 +519,23 @@ class GsRpcSpringbootApplicationTests {
     }
 
 
-
+    /**
+     * 模拟并发测试
+     */
     @Test
     public void concurrentTest(){
+        HelloServiceImpl helloService = context.getBean(HelloServiceImpl.class);
+        HelloServiceImplV2 helloServiceV2 = context.getBean(HelloServiceImplV2.class);
         long s = System.currentTimeMillis();
         DemoService demoService = context.getBean(DemoService.class);
         ExecutorService executorService = Executors.newFixedThreadPool(32);
 
         // 32个线程，同时调用1000次方法 demoService.test()
-        int threadCount = 32;
+        int threadCount = 1000;
         int invokeCount = 1000;
-
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
             executorService.execute(() -> {
-
                 long start = System.currentTimeMillis();
                 for (int j = 0; j < invokeCount; j++) {
                     String rpcResult = demoService.helloTest(String.valueOf(j));
@@ -546,6 +547,41 @@ class GsRpcSpringbootApplicationTests {
 
         }
 
+        executorService.shutdown(); // 关闭线程池的提交
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // 等待所有任务执行完成
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 重新设置中断状态
+        }
+        long e = System.currentTimeMillis();
+        System.out.println(String.format("总耗时:{%d} OPS:{%d}",(e-s),1000*threadCount*invokeCount/(e-s)));
+    }
+
+    /**
+     * 模拟并发测试（耗时任务）
+     */
+    @Test
+    public void concurrentTestV2(){
+        long s = System.currentTimeMillis();
+        DemoService demoService = context.getBean(DemoService.class);
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
+
+        // 32个线程，同时调用1000次方法 demoService.test()
+        int threadCount = 1000;
+        int invokeCount = 1000;
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            executorService.execute(() -> {
+                long start = System.currentTimeMillis();
+                for (int j = 0; j < invokeCount; j++) {
+                    String rpcResult = demoService.helloTest2(String.valueOf(j));
+                    assert rpcResult.equals("Hello " + String.valueOf(j)+"#version2.0");
+                }
+                long end = System.currentTimeMillis();
+                System.out.println(String.format("Thread{%d} start at {%s} ,end at {%s}, cost:{%d}, ops:{%d}", index, start, end, end - start, invokeCount * 1000 / (end - start)));
+            });
+
+        }
 
         executorService.shutdown(); // 关闭线程池的提交
         try {
@@ -556,6 +592,7 @@ class GsRpcSpringbootApplicationTests {
         long e = System.currentTimeMillis();
         System.out.println(String.format("总耗时:{%d} OPS:{%d}",(e-s),1000*threadCount*invokeCount/(e-s)));
     }
+
 
     @Test
     public void heartBeatTest(){
@@ -583,4 +620,8 @@ class GsRpcSpringbootApplicationTests {
 
 
 
+    @Test
+    public void showProcessorsTest(){
+        System.out.println(Runtime.getRuntime().availableProcessors());
+    }
 }

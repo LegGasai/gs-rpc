@@ -32,7 +32,7 @@ public class ConnectionPoolManager {
     /**
      * 线程池
      */
-    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("connection-pool-manager",16,16,60 * 1000);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("connection-pool-manager",0,16,60 * 1000,0);
 
     private ConcurrentHashMap<Invoker,AbstractClientChannelHandler> invoker2Handler = new ConcurrentHashMap<Invoker, AbstractClientChannelHandler>();
 
