@@ -37,23 +37,23 @@ public class TaskManager {
      * 优雅停机等待时间
      */
     private final static int SHUTDOWN_TIMEOUT = 10 * 1000;
-    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test-demo",16,16,60 * 1000);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("test-demo",128,128,60 * 1000);
     private final AtomicInteger taskCount = new AtomicInteger(0);
     //private final ConcurrentHashMap<CompletableFuture<RpcResponseBody>,Long> pendingTasks = new ConcurrentHashMap<>();
-    private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("test-demo",2);
+    private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("test-demo",4);
     // 超时 & 重试机制 todo
     public CompletableFuture<RpcResponseBody> submit(RpcRequestBody request){
         try {
             taskCount.incrementAndGet();
-//            CompletableFuture<RpcResponseBody> task = CompletableFuture.supplyAsync(() -> {
-//                try {
-//                    return handle(request);
-//                } catch (RpcException e) {
-//                    logger.error("TaskManager execute error", e);
-//                    return RpcResponseBody.failWithException(e);
-//                }
-//            }, executor);
-
+            //CompletableFuture<RpcResponseBody> task = CompletableFuture.supplyAsync(() -> {
+            //    try {
+            //        return handle(request);
+            //    } catch (RpcException e) {
+            //        logger.error("TaskManager execute error", e);
+            //        return RpcResponseBody.failWithException(e);
+            //    }
+            //}, executor);
+            //return task;
             CompletableFuture<RpcResponseBody> task = new CompletableFuture<>();
             // 任务执行超时监听
             ScheduledFuture<?> scheduledFuture = scheduler.schedule(() -> {

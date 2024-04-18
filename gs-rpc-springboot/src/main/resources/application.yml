@@ -9,7 +9,7 @@ gsrpc:
     timeout: 1000
     retries: 1
     protocol: kindred
-    serialization: kryo
+    serialization: hessian
     weight: 5
     host: 127.0.0.1
     port: 20888
@@ -21,7 +21,7 @@ gsrpc:
     loadbalance: random
     protocol: kindred
     port: -1
-    serialization: kryo
+    serialization: hessian
 
   registry:
     host: 127.0.0.1

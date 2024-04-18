@@ -23,10 +23,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * @Author: Jiang Yichen
@@ -74,7 +71,7 @@ public class InvocationManager {
             // todo 将invocatio发送给StatisticsCenter统计调用信息
             pendingRpcs.remove(requestId,future);
             invocationMap.remove(requestId,invocation);
-            logger.info("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
+            //logger.info("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
         }else{
             logger.error("Invocation Manager has no such RPC requestId :{}", requestId);
         }

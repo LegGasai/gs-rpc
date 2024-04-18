@@ -52,6 +52,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootTest
 class GsRpcSpringbootApplicationTests {
@@ -511,25 +512,20 @@ class GsRpcSpringbootApplicationTests {
         order.setProductsList(Arrays.asList("商品1","商品2"));
         order.setCreateTime(new Date());
 
-        RpcSerialization serialize = SerializationFactory.getSerialize(SerializationType.KRYOSERIALIZE);
-        byte[] bytes = serialize.serialize(order);
-        Object deserialize = serialize.deserialize(bytes, Order.class);
-        System.out.println(deserialize);
-        //long start = System.currentTimeMillis();
-        //Order result = demoService.getOrder(order);
-        //long end = System.currentTimeMillis();
-        //System.out.println(result);
-        //System.out.println("耗时:"+(end-start));
+        long start = System.currentTimeMillis();
+        Order result = demoService.getOrder(order);
+        long end = System.currentTimeMillis();
+        System.out.println(result);
+        System.out.println("耗时:"+(end-start));
     }
 
 
 
     @Test
     public void concurrentTest(){
+        long s = System.currentTimeMillis();
         DemoService demoService = context.getBean(DemoService.class);
-        HelloServiceImpl helloService = context.getBean(HelloServiceImpl.class);
-        HelloServiceImplV2 helloService2 = context.getBean(HelloServiceImplV2.class);
-        ExecutorService executorService = Executors.newFixedThreadPool(1000);
+        ExecutorService executorService = Executors.newFixedThreadPool(32);
 
         // 32个线程，同时调用1000次方法 demoService.test()
         int threadCount = 32;
@@ -537,23 +533,28 @@ class GsRpcSpringbootApplicationTests {
 
         for (int i = 0; i < threadCount; i++) {
             final int index = i;
-            executorService.submit(()->{
+            executorService.execute(() -> {
+
                 long start = System.currentTimeMillis();
                 for (int j = 0; j < invokeCount; j++) {
                     String rpcResult = demoService.helloTest(String.valueOf(j));
-                    String localResult = helloService.hello(String.valueOf(j));
-                    assert rpcResult.equals(localResult);
+                    assert rpcResult.equals("Hello " + String.valueOf(j));
                 }
                 long end = System.currentTimeMillis();
-                System.out.println(String.format("Thread{%d} start at {%s} ,end at {%s}, cost:{%d}, ops:{%d}",index,start,end,end-start,invokeCount*1000/(end-start)));
+                System.out.println(String.format("Thread{%d} start at {%s} ,end at {%s}, cost:{%d}, ops:{%d}", index, start, end, end - start, invokeCount * 1000 / (end - start)));
             });
+
         }
+
+
         executorService.shutdown(); // 关闭线程池的提交
         try {
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // 等待所有任务执行完成
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 重新设置中断状态
         }
+        long e = System.currentTimeMillis();
+        System.out.println(String.format("总耗时:{%d} OPS:{%d}",(e-s),1000*threadCount*invokeCount/(e-s)));
     }
 
     @Test

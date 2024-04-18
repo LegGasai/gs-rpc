@@ -3,7 +3,6 @@ package com.leggasai.rpc.serialization.kryo;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.pool.KryoPool;
 import com.leggasai.rpc.serialization.RpcSerialization;
 
 import java.io.ByteArrayInputStream;
@@ -11,11 +10,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class KryoSerialization implements RpcSerialization {
-    static KryoPool pool = KryoPoolFactory.getKryoPoolInstance();
+    private static KryoPoolFactory kryoPoolFactory = KryoPoolFactory.getInstance();
 
     @Override
     public <T> byte[] serialize(T obj) {
-        Kryo kryo = pool.borrow();
+        Kryo kryo = kryoPoolFactory.borrow();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         Output ko = new Output(bos);
         try{
@@ -26,7 +25,7 @@ public class KryoSerialization implements RpcSerialization {
             throw new RuntimeException(e);
         }finally {
             try {
-                pool.release(kryo);
+                kryoPoolFactory.release(kryo);
                 bos.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -36,7 +35,7 @@ public class KryoSerialization implements RpcSerialization {
 
     @Override
     public <T> Object deserialize(byte[] bytes, Class<T> clazz) {
-        Kryo kryo = pool.borrow();
+        Kryo kryo = kryoPoolFactory.borrow();
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         Input ki = new Input(bis);
         try{
@@ -48,7 +47,7 @@ public class KryoSerialization implements RpcSerialization {
         }finally {
             try {
                 bis.close();
-                pool.release(kryo);
+                kryoPoolFactory.release(kryo);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

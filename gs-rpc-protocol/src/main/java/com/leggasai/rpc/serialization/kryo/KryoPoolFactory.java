@@ -1,8 +1,10 @@
 package com.leggasai.rpc.serialization.kryo;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.pool.KryoFactory;
-import com.esotericsoftware.kryo.pool.KryoPool;
+import com.esotericsoftware.kryo.SerializerFactory;
+import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
+import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
+import com.esotericsoftware.kryo.util.Pool;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import io.protostuff.runtime.RuntimeSchema;
@@ -18,10 +20,11 @@ import java.util.HashMap;
 public class KryoPoolFactory {
     private static volatile KryoPoolFactory poolFactory = null;
 
-    private KryoFactory factory = new KryoFactory() {
+    private Pool<Kryo> pool = new Pool(true, false, 8) {
         @Override
         public Kryo create() {
             Kryo kryo = new Kryo();
+            kryo.setRegistrationRequired(false);
             kryo.setReferences(false);
             kryo.register(RpcRequestBody.class);
             kryo.register(RpcResponseBody.class);
@@ -31,18 +34,20 @@ public class KryoPoolFactory {
             kryo.register(String[].class);
             kryo.register(Object.class);
             kryo.register(String.class);
-            Kryo.DefaultInstantiatorStrategy strategy = (Kryo.DefaultInstantiatorStrategy) kryo.getInstantiatorStrategy();
-            strategy.setFallbackInstantiatorStrategy(new StdInstantiatorStrategy());
+
+            CompatibleFieldSerializer.CompatibleFieldSerializerConfig config = new CompatibleFieldSerializer.CompatibleFieldSerializerConfig();
+            config.setExtendedFieldNames(false);
+            config.setReadUnknownFieldData(true);
+            kryo.setDefaultSerializer(new SerializerFactory.CompatibleFieldSerializerFactory(config));
+            kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
             return kryo;
         }
     };
 
-    private KryoPool pool = new KryoPool.Builder(factory).build();
-
     private KryoPoolFactory() {
     }
 
-    public static KryoPool getKryoPoolInstance() {
+    public static KryoPoolFactory getInstance() {
         if (poolFactory == null) {
             synchronized (KryoPoolFactory.class) {
                 if (poolFactory == null) {
@@ -50,10 +55,13 @@ public class KryoPoolFactory {
                 }
             }
         }
-        return poolFactory.getPool();
+        return poolFactory;
     }
 
-    public KryoPool getPool() {
-        return pool;
+    public Kryo borrow(){
+        return pool.obtain();
+    }
+    public void release(Kryo kryo) {
+        pool.free(kryo);
     }
 }

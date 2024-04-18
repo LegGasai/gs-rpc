@@ -78,7 +78,7 @@ public class RpcMethodInvoke implements MethodInvoke{
                 logger.error("RPC invoke error，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
                 throw (RpcException)result;
             } else{
-                logger.info("RPC invoke success，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
+                //logger.info("RPC invoke success，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
                 return result;
             }
         }catch (TimeoutException e){
