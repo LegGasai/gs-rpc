@@ -35,7 +35,6 @@ import java.util.concurrent.*;
 public class InvocationManager {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationManager.class);
-
     /**
      * 线程池
      */
@@ -46,6 +45,10 @@ public class InvocationManager {
      * 等待响应的RPC调用
      */
     private final Map<Long, CompletableFuture<Object>> pendingRpcs = new ConcurrentHashMap<>();
+    /**
+     * 重试次数
+     */
+    private final Map<Long, Integer> invokeCountMap = new ConcurrentHashMap<>();
 
     /**
      * 调用信息Map
@@ -67,11 +70,20 @@ public class InvocationManager {
     public void markFinish(Long requestId, RpcResponseBody response){
         if (requestId != null && pendingRpcs.containsKey(requestId)){
             CompletableFuture<Object> future = pendingRpcs.get(requestId);
-            future.complete(response.getResult());
             Invocation invocation = invocationMap.get(requestId);
+            if (!response.isSuccess()){
+                Integer retryCount = invokeCountMap.getOrDefault(requestId, 0);
+                if (invokeCountMap.getOrDefault(requestId,0) > 0){
+                    logger.warn("Invocation Manager: RPC invocation fails, and try to retry with retries:{}, RequestId:{}",retryCount,requestId);
+                    invokeCountMap.put(requestId,retryCount -1 );
+                    executor.execute(() -> executeInvocation(invocation, future));
+                    return;
+                }else{
+                    logger.warn("Invocation Manager: RPC invocation fails, after {} retries, RequestId:{}",consumerProperties.getRetries(),requestId);
+                }
+            }
+            invocationFinish(invocation,future,response,null);
             // todo 将invocatio发送给StatisticsCenter统计调用信息
-            pendingRpcs.remove(requestId,future);
-            invocationMap.remove(requestId,invocation);
             logger.debug("Invocation Manager: RPC requestId :{} has finished with response:{}, cost time:{} ms",requestId,response,invocation.getCostTime());
         }else{
             logger.error("Invocation Manager has no such RPC requestId :{}", requestId);
@@ -85,24 +97,20 @@ public class InvocationManager {
      */
     public CompletableFuture<Object> submitRequest(RpcRequestBody request){
         CompletableFuture<Object> future = new CompletableFuture<>();
-        executor.execute(() -> executeInvocation(request, future));
+        Invocation invocation = invocationStart(request, future);
+        executor.execute(() -> executeInvocation(invocation, future));
         return future;
     }
 
-    private void executeInvocation(RpcRequestBody request,CompletableFuture<Object> future){
-        Invocation invocation = new Invocation(request);
-        invocation.setStartTime(System.currentTimeMillis());
-        invocation.setSerializationType(SerializationType.getByProtocol(consumerProperties.getSerialization()));
-        pendingRpcs.put(invocation.getRequestId(),future);
-        invocationMap.put(invocation.getRequestId(),invocation);
+    private void executeInvocation(Invocation invocation,CompletableFuture<Object> future){
+        RpcRequestBody request = invocation.getRequest();
         // 负载均衡 选出handler invocation.setHandler
         String serviceKey = request.getService() + Separator.SERVICE_SPLIT + request.getVersion();
         List<Invoker> invokers = discoveryCenter.getInvokersByServiceKey(serviceKey);
         if (CollectionUtils.isEmpty(invokers)){
             logger.error("InvocationManager: No invokers found for serviceKey:{}",serviceKey);
-            future.completeExceptionally(new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage()));
-            pendingRpcs.remove(invocation.getRequestId(),future);
-            invocationMap.remove(invocation.getRequestId(),invocation);
+            RpcException exception = new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage());
+            invocationFinish(invocation,future,null,exception);
             return;
         }
         LoadBalance loadBalance = LoadBalanceFactory.getLoadBalance(LoadBalanceType.getByType(consumerProperties.getLoadBalance()));
@@ -110,6 +118,33 @@ public class InvocationManager {
         invocation.setInvoker(invoker);
         AbstractClientChannelHandler channelHandler = connectionPoolManager.getHandler(invoker);
         channelHandler.invoke(invocation);
+    }
+
+    private Invocation invocationStart(RpcRequestBody request, CompletableFuture<Object> task){
+        Invocation invocation = new Invocation(request);
+        invocation.setStartTime(System.currentTimeMillis());
+        invocation.setSerializationType(SerializationType.getByProtocol(consumerProperties.getSerialization()));
+        pendingRpcs.put(invocation.getRequestId(),task);
+        invocationMap.put(invocation.getRequestId(),invocation);
+        invokeCountMap.put(invocation.getRequestId(),consumerProperties.getRetries());
+        return invocation;
+    }
+
+    private void invocationFinish(Invocation invocation, CompletableFuture<Object> future, RpcResponseBody response, Exception exception){
+        if (response == null) {
+            if (exception != null) {
+                future.completeExceptionally(new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage()));
+            }
+            invocation.setSuccess(false);
+        }else{
+            future.complete(response.getResult());
+            invocation.setSuccess(response.isSuccess());
+        }
+
+        invocation.setEndTime(System.currentTimeMillis());
+        pendingRpcs.remove(invocation.getRequestId(),future);
+        invocationMap.remove(invocation.getRequestId(),invocation);
+        invocationMap.remove(invocation.getRequestId());
     }
 
     /**

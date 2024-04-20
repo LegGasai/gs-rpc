@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.util.Pool;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
 import com.leggasai.rpc.enums.ResponseType;
+import com.leggasai.rpc.exception.RpcException;
 import io.protostuff.runtime.RuntimeSchema;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
@@ -27,9 +28,11 @@ public class KryoPoolFactory {
         public Kryo create() {
             Kryo kryo = new Kryo();
             kryo.setRegistrationRequired(false);
-            kryo.setReferences(false);
+            kryo.setReferences(true); //解决循环引用问题
             kryo.register(RpcRequestBody.class);
             kryo.register(RpcResponseBody.class);
+            kryo.register(Exception.class);
+            kryo.register(RpcException.class);
             kryo.register(HashMap.class);
             kryo.register(Object[].class);
             kryo.register(Class[].class);

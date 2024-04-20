@@ -472,6 +472,9 @@ class GsRpcSpringbootApplicationTests {
 
     @Test
     public void systemTest(){
+        try {
+            Thread.sleep(2000);
+        }catch (InterruptedException e){}
         DemoService demoService = context.getBean(DemoService.class);
         long start = System.nanoTime();
         demoService.helloTest("123");
@@ -614,5 +617,18 @@ class GsRpcSpringbootApplicationTests {
     @Test
     public void showProcessorsTest(){
         System.out.println(Runtime.getRuntime().availableProcessors());
+    }
+
+
+    @Test
+    public void clientRetryTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        demoService.timeout();
+        try {
+            Thread.sleep(15000);
+        }catch (InterruptedException e){
+
+        }
+        System.out.println("测试结束");
     }
 }

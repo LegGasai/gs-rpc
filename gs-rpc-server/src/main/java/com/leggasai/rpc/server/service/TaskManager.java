@@ -87,8 +87,8 @@ public class TaskManager {
     private void executeWithRetry(CompletableFuture<RpcResponseBody> task, RpcRequestBody request, int retry, RpcException lastException){
         executor.execute(()->{
             if (retry < 0){
-                logger.error("TaskManager task execution fails after {} retries, the last exception",providerProperties.getRetries(),lastException);
-                task.complete(RpcResponseBody.failWithException(new RpcException(ErrorCode.SERVICE_ERROR.getCode(),ErrorCode.SERVICE_ERROR.getMessage(),lastException)));
+                logger.error("TaskManager task execution fails after {} retries, the last exception is",providerProperties.getRetries(),lastException);
+                task.complete(RpcResponseBody.failWithException(lastException));
                 return;
             }
             try{
@@ -131,7 +131,7 @@ public class TaskManager {
                 return RpcResponseBody.successWithResult(result);
             }
         } catch (NoSuchMethodError e){
-            throw new RpcException(ErrorCode.METHOD_NOT_FOUND.getCode(),ErrorCode.METHOD_NOT_FOUND.getMessage(),e.getCause());
+            throw new RpcException(ErrorCode.METHOD_NOT_FOUND.getCode(),ErrorCode.METHOD_NOT_FOUND.getMessage(),e);
         } catch (InvocationTargetException e) {
             throw new RpcException(ErrorCode.SERVICE_ERROR.getCode(), ErrorCode.SERVICE_ERROR.getMessage(),e.getTargetException());
         } catch (Exception e){

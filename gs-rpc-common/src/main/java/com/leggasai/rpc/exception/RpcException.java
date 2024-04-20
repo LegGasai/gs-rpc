@@ -42,4 +42,6 @@ public class RpcException extends RuntimeException{
     public void setCode(int code) {
         this.code = code;
     }
+
+
 }

@@ -70,14 +70,14 @@ public class RpcMethodInvoke implements MethodInvoke{
         requestBody.setParameterTypes(method.getParameterTypes());
         CompletableFuture<Object> future = invocationManager.submitRequest(requestBody);
 
-
         // fixme,是否应该抛出异常，抛出异常客户端程序会崩溃，因为invoke方法的异常不会被外层捕获。
         // 看看dubbo是如何处理的
         try {
             Object result = future.get(consumerProperties.getTimeout(), TimeUnit.MILLISECONDS);
             if (result instanceof RpcException){
-                logger.error("RPC invoke error，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
-                throw (RpcException)result;
+                RpcException exception = (RpcException) result;
+                logger.error("RPC invoke error，ServiceKey={}#{}, Method={}",service,version,method.getName());
+                throw exception;
             } else{
                 logger.debug("RPC invoke success，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
                 return result;
