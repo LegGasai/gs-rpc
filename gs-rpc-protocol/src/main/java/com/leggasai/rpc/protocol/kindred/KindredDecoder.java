@@ -32,7 +32,6 @@ public class KindredDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        long start = System.nanoTime();
         // byte[] -> obj
         if (byteBuf.readableBytes() < Kindred.HEADER_LENGTH) {
             return;
@@ -73,7 +72,5 @@ public class KindredDecoder extends ByteToMessageDecoder {
             logger.error("KindredDecoder在解析时出现异常",e);
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage(),e);
         }
-        long end = System.nanoTime();
-        System.out.println("Decoder:"+(end - start));
     }
 }

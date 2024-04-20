@@ -69,7 +69,6 @@ public class InvocationManager {
             CompletableFuture<Object> future = pendingRpcs.get(requestId);
             future.complete(response.getResult());
             Invocation invocation = invocationMap.get(requestId);
-            invocation.setEndTime(System.currentTimeMillis());
             // todo 将invocatio发送给StatisticsCenter统计调用信息
             pendingRpcs.remove(requestId,future);
             invocationMap.remove(requestId,invocation);
@@ -85,11 +84,8 @@ public class InvocationManager {
      * @return
      */
     public CompletableFuture<Object> submitRequest(RpcRequestBody request){
-        long start = System.nanoTime();
         CompletableFuture<Object> future = new CompletableFuture<>();
         executor.execute(() -> executeInvocation(request, future));
-        long end = System.nanoTime();
-        System.out.println("submitRequest:"+(end - start));
         return future;
     }
 

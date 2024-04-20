@@ -1,6 +1,5 @@
 package com.leggasai.rpc.common.beans;
 
-import javafx.scene.chart.ValueAxis;
 
 import java.util.HashMap;
 import java.util.Map;

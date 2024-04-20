@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationProperties {
     @Value("${gsrpc.application.name:}")
     private String name;
-    @Value("${gsrpc.application.proxy:jdk}")
+    @Value("${gsrpc.application.proxy:cglib}")
     private String proxy;
 
     public String getName() {

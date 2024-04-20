@@ -3,7 +3,6 @@ package com.leggasai.rpc.gsrpcspringboot.consumer.service;
 import com.leggasai.rpc.annotation.GsReference;
 import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
 import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import org.springframework.stereotype.Component;
 
 /**

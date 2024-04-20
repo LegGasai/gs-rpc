@@ -98,7 +98,6 @@ public class TaskManager {
                 logger.error("TaskManager task execution error with retry :{}", retry,e);
                 executeWithRetry(task,request,retry-1,e);
             }
-            long end = System.nanoTime();
         });
     }
 
@@ -109,7 +108,6 @@ public class TaskManager {
      * @throws RpcException:封装了执行时的各种异常
      */
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
-        long start = System.currentTimeMillis();
         if (request == null){
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }

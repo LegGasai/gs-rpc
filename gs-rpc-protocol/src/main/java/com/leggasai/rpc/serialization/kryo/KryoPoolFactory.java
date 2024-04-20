@@ -7,6 +7,7 @@ import com.esotericsoftware.kryo.util.DefaultInstantiatorStrategy;
 import com.esotericsoftware.kryo.util.Pool;
 import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.codec.RpcResponseBody;
+import com.leggasai.rpc.enums.ResponseType;
 import io.protostuff.runtime.RuntimeSchema;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
@@ -18,12 +19,10 @@ import java.util.HashMap;
  * @Description: Kryo Pool工厂（单例）
  */
 public class KryoPoolFactory {
-    private static volatile KryoPoolFactory poolFactory = null;
-
     /**
      * 对象池解决线程安全问题
      */
-    private Pool<Kryo> pool = new Pool(true, false, 8) {
+    private static Pool<Kryo> pool = new Pool(true, false, 8) {
         @Override
         public Kryo create() {
             Kryo kryo = new Kryo();
@@ -47,24 +46,11 @@ public class KryoPoolFactory {
         }
     };
 
-    private KryoPoolFactory() {
-    }
 
-    public static KryoPoolFactory getInstance() {
-        if (poolFactory == null) {
-            synchronized (KryoPoolFactory.class) {
-                if (poolFactory == null) {
-                    poolFactory = new KryoPoolFactory();
-                }
-            }
-        }
-        return poolFactory;
-    }
-
-    public Kryo borrow(){
+    public static Kryo borrow(){
         return pool.obtain();
     }
-    public void release(Kryo kryo) {
+    public static void release(Kryo kryo) {
         pool.free(kryo);
     }
 }

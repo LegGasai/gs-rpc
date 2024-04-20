@@ -1,6 +1,5 @@
 package com.leggasai.rpc.common.beans;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 
 /**
  * @Author: Jiang Yichen

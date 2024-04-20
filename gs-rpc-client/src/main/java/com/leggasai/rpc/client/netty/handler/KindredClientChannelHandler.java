@@ -13,7 +13,6 @@ public class KindredClientChannelHandler extends AbstractClientChannelHandler<Ki
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Kindred msg) throws Exception {
-        System.out.println("Receive完成:"+System.nanoTime());
         invocationManager.markFinish(msg.getRequestId(),msg.getResponseBody());
     }
 
@@ -25,15 +24,6 @@ public class KindredClientChannelHandler extends AbstractClientChannelHandler<Ki
         kindred.setNoEvent();
         kindred.setSerialize(invocation.getSerializationType());
         kindred.setRequestBody(invocation.getRequest());
-        try {
-            long start = System.nanoTime();
-            this.channel.writeAndFlush(kindred).sync();
-            long end = System.nanoTime();
-            System.out.println("Send:"+(end - start));
-            System.out.println("Send完成:"+end);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
+        this.channel.writeAndFlush(kindred);
     }
 }

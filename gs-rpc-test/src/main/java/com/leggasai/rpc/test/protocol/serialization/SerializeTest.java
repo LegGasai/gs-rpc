@@ -19,24 +19,43 @@ public class SerializeTest {
 
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10; i++) {
-            benchmark(10000, SerializationType.KRYOSERIALIZE);
-        }
-        for (int i = 0; i < 10; i++) {
-            benchmark(10000, SerializationType.FSTSERIALIZE);
-        }
-        for (int i = 0; i < 10; i++) {
-            benchmark(10000, SerializationType.HESSIANSERIALIZE);
-        }
-        for (int i = 0; i < 10; i++) {
-            benchmark(10000, SerializationType.PROTOSTUFFSERIALIZE);
-        }
-        for (int i = 0; i < 10; i++) {
-            benchmark(10000, SerializationType.JDKSERIALIZE);
-        }
+        UUID.randomUUID().toString();
+        serializeTest(10000,10, SerializationType.KRYOSERIALIZE);
+        serializeTest(10000,10, SerializationType.FSTSERIALIZE);
+        serializeTest(10000,10, SerializationType.HESSIANSERIALIZE);
+        serializeTest(10000,10, SerializationType.PROTOSTUFFSERIALIZE);
+        serializeTest(10000,10, SerializationType.JDKSERIALIZE);
+
     }
 
-    public static void benchmark(int count, SerializationType type){
+    public static void serializeTest(int batch,int count, SerializationType type){
+        long totalCost = 0;
+        for (int i = 0; i < count; i++) {
+            totalCost += benchmark(batch, type);
+        }
+        System.out.println("==========================测试完成===========================");
+        System.out.println(String.format("方法：%s，平均耗时：%d", type.getSerializeProtocol(), totalCost / count));
+    }
+
+    public static long singleTest(SerializationType type){
+
+        RpcSerialization serialize = SerializationFactory.getSerialize(type);
+        long totalBytes = 0;
+        long start = System.currentTimeMillis();
+        RpcRequestBody body = mockRequestBody();
+        byte[] bytes = serialize.serialize(body);
+        totalBytes += bytes.length;
+        RpcRequestBody deserializeBody = (RpcRequestBody)serialize.deserialize(bytes,RpcRequestBody.class);
+        if (!isEqual(body,deserializeBody)){
+            throw new RuntimeException("序列化对象发生改变！");
+        }
+        long end = System.currentTimeMillis();
+            System.out.println("============================");
+            System.out.println(String.format("方法：%s 总字节数：%s 耗时：%s",type.name(), totalBytes,end - start));
+            return end - start;
+        }
+
+    public static long benchmark(int count, SerializationType type){
         RpcSerialization serialize = SerializationFactory.getSerialize(type);
         long totalBytes = 0;
         long start = System.currentTimeMillis();
@@ -52,10 +71,10 @@ public class SerializeTest {
         long end = System.currentTimeMillis();
         System.out.println("============================");
         System.out.println(String.format("方法：%s 次数：%d 总字节数：%s 耗时：%s",type.name(), count, totalBytes,end - start));
+        return end - start;
     }
 
     public static RpcRequestBody mockRequestBody(){
-
         RpcRequestBody requestBody = new RpcRequestBody();
         requestBody.setService(UUID.randomUUID().toString());
         requestBody.setMethod(UUID.randomUUID().toString());
@@ -63,6 +82,7 @@ public class SerializeTest {
         requestBody.setParameterTypes(new Class[]{String.class,Integer.class, Map.class});
         requestBody.setParameters(new Object[]{UUID.randomUUID().toString(), (int)Math.random()*100});
         requestBody.setExtendField(new HashMap<String,Object>());
+
         return requestBody;
     }
 
