@@ -4,6 +4,7 @@ import com.leggasai.rpc.annotation.EnableGsRPC;
 import com.leggasai.rpc.config.ApplicationProperties;
 import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.config.ProviderProperties;
+import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;

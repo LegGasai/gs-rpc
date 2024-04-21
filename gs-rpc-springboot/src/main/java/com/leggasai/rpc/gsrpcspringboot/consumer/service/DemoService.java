@@ -20,8 +20,8 @@ public class DemoService {
     private HelloService helloService2;
 
     public void demoTest(){
-        System.out.println(helloService.hello("我是朱瑞祥"));
-        System.out.println(helloService2.hello("我是sb"));
+        System.out.println(helloService.hello("hello"));
+        System.out.println(helloService2.hello("我是xxx"));
     }
 
     public String helloTest(String name){
