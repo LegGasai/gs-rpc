@@ -1,5 +1,5 @@
 # GS-RPC
-* A java-based RPC framework
+A java-based RPC framework using Netty and ZooKeeper
 
 ## Features
 * Easy to use
