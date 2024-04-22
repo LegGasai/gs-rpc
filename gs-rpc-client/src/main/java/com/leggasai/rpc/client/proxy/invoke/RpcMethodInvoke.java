@@ -6,6 +6,7 @@ import com.leggasai.rpc.codec.RpcRequestBody;
 import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
+import com.leggasai.rpc.utils.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,7 @@ public class RpcMethodInvoke implements MethodInvoke{
         // 看看dubbo是如何处理的
         try {
             Object result = future.get(consumerProperties.getTimeout(), TimeUnit.MILLISECONDS);
+            System.out.println("invoke finish:"+ TimeUtil.getNanoTime());
             if (result instanceof RpcException){
                 logger.error("RPC invoke error，ServiceKey={}#{}, Method={} ,result = {}",service,version,method.getName(),result);
                 throw (RpcException)result;

@@ -40,6 +40,7 @@ import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.function.Try;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -485,14 +486,24 @@ class GsRpcSpringbootApplicationTests {
         long start = System.nanoTime();
         demoService.helloTest("123");
         System.out.println("耗时:"+(System.nanoTime() - start));
+        System.out.println();
         start = System.nanoTime();
         demoService.helloTest("123");
         System.out.println("耗时:"+(System.nanoTime() - start));
+        System.out.println();
         start = System.nanoTime();
         demoService.helloTest("123");
         System.out.println("耗时:"+(System.nanoTime() - start));
     }
-
+    @Test
+    public void multiTest(){
+        DemoService demoService = context.getBean(DemoService.class);
+        for (int i = 0; i < 100; i++) {
+            long start = System.nanoTime();
+            demoService.helloTest("123");
+            System.out.println("耗时:"+(System.nanoTime() - start));
+        }
+    }
     @Test
     public void dtoTest(){
         DemoService demoService = context.getBean(DemoService.class);
@@ -618,6 +629,12 @@ class GsRpcSpringbootApplicationTests {
         System.out.println("测试结束");
     }
 
+
+    @Test
+    public void logTest(){
+        String loggerFactoryClassStr = StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr();
+        System.out.println("当前SLF4J绑定的日志实现类是：" + loggerFactoryClassStr);
+    }
 
 
     @Test

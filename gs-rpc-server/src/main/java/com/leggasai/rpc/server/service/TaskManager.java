@@ -9,6 +9,7 @@ import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import com.leggasai.rpc.threadpool.FixedThreadPool;
 import com.leggasai.rpc.threadpool.ScheduledThreadPool;
+import com.leggasai.rpc.utils.TimeUtil;
 import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,8 @@ public class TaskManager {
     private final ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor)ScheduledThreadPool.getExecutor("TaskManager-Schedule",8);
     // 超时 & 重试机制 todo
     public CompletableFuture<RpcResponseBody> submit(RpcRequestBody request){
+        long start = TimeUtil.getNanoTime();
+        System.out.println("submit start:"+start);
         try {
             taskCount.incrementAndGet();
             //CompletableFuture<RpcResponseBody> task = CompletableFuture.supplyAsync(() -> {
@@ -80,12 +83,17 @@ public class TaskManager {
             taskCount.decrementAndGet();
             return CompletableFuture.completedFuture(RpcResponseBody.failWithException(exception));
         }finally {
-
+            long end = TimeUtil.getNanoTime();
+            System.out.println(String.format("submit finished: cost:{%d} at:{%d}",end-start,end));
         }
     }
 
     private void executeWithRetry(CompletableFuture<RpcResponseBody> task, RpcRequestBody request, int retry, RpcException lastException){
+        long start = TimeUtil.getNanoTime();
+        System.out.println("executeWithRetry start:"+start);
         executor.execute(()->{
+            long start2 = TimeUtil.getNanoTime();
+            System.out.println("executeWithRetry start2:"+start2);
             if (retry < 0){
                 logger.error("TaskManager task execution fails after {} retries, the last exception",providerProperties.getRetries(),lastException);
                 task.complete(RpcResponseBody.failWithException(new RpcException(ErrorCode.SERVICE_ERROR.getCode(),ErrorCode.SERVICE_ERROR.getMessage(),lastException)));
@@ -98,7 +106,7 @@ public class TaskManager {
                 logger.error("TaskManager task execution error with retry :{}", retry,e);
                 executeWithRetry(task,request,retry-1,e);
             }
-            long end = System.nanoTime();
+            TimeUtil.printCostTime("executeWithRetry",start);
         });
     }
 
@@ -109,7 +117,8 @@ public class TaskManager {
      * @throws RpcException:封装了执行时的各种异常
      */
     private RpcResponseBody handle(RpcRequestBody request) throws RpcException{
-        long start = System.currentTimeMillis();
+        long start = TimeUtil.getNanoTime();
+        System.out.println("handle start:"+start);
         if (request == null){
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage());
         }
@@ -139,7 +148,10 @@ public class TaskManager {
         } catch (Exception e){
             // 异常兜底
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(), ErrorCode.SERVER_ERROR.getMessage(),e);
+        } finally {
+            TimeUtil.printCostTime("handle",start);
         }
+
 
     }
 

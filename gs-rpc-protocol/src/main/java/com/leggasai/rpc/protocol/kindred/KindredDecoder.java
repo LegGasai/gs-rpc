@@ -7,6 +7,7 @@ import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.serialization.RpcSerialization;
 import com.leggasai.rpc.serialization.SerializationFactory;
 import com.leggasai.rpc.serialization.SerializationType;
+import com.leggasai.rpc.utils.TimeUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -32,7 +33,7 @@ public class KindredDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
-        long start = System.nanoTime();
+        long start = TimeUtil.getNanoTime();
         // byte[] -> obj
         if (byteBuf.readableBytes() < Kindred.HEADER_LENGTH) {
             return;
@@ -73,7 +74,7 @@ public class KindredDecoder extends ByteToMessageDecoder {
             logger.error("KindredDecoder在解析时出现异常",e);
             throw new RpcException(ErrorCode.SERVER_ERROR.getCode(),ErrorCode.SERVER_ERROR.getMessage(),e);
         }
-        long end = System.nanoTime();
-        System.out.println("Decoder:"+(end - start));
+        TimeUtil.printCostTime("KindredDecoder",start);
+        System.out.println("--------------------------");
     }
 }

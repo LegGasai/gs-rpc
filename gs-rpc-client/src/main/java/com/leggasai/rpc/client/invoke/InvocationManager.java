@@ -15,6 +15,7 @@ import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.threadpool.CachedThreadPool;
 import com.leggasai.rpc.threadpool.FixedThreadPool;
+import com.leggasai.rpc.utils.TimeUtil;
 import io.protostuff.Rpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,6 @@ public class InvocationManager {
      */
     //private final ThreadPoolExecutor executor = (ThreadPoolExecutor) CachedThreadPool.getExecutor("InvocationManager",128,256,60 * 1000,0);
     private final ThreadPoolExecutor executor = (ThreadPoolExecutor) FixedThreadPool.getExecutor("InvocationManager",256,0);
-
     /**
      * 等待响应的RPC调用
      */
@@ -85,11 +85,10 @@ public class InvocationManager {
      * @return
      */
     public CompletableFuture<Object> submitRequest(RpcRequestBody request){
-        long start = System.nanoTime();
+        long start = TimeUtil.getNanoTime();
         CompletableFuture<Object> future = new CompletableFuture<>();
         executor.execute(() -> executeInvocation(request, future));
-        long end = System.nanoTime();
-        System.out.println("submitRequest:"+(end - start));
+        TimeUtil.printCostTime("submitRequest",start);
         return future;
     }
 

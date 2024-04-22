@@ -7,6 +7,9 @@ import com.leggasai.rpc.exception.RpcException;
 import com.leggasai.rpc.protocol.kindred.Kindred;
 import com.leggasai.rpc.server.netty.AbstractServerChannelHandler;
 import com.leggasai.rpc.server.service.TaskManager;
+import com.leggasai.rpc.utils.TimeUtil;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,10 +28,21 @@ public class KindredServerChannelHandler extends AbstractServerChannelHandler<Ki
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Kindred kindred) throws Exception {
+        long start = TimeUtil.getNanoTime();
+        System.out.println("channelRead0 start at:"+start);
         CompletableFuture<RpcResponseBody> future = submitTask(kindred.getRequestBody());
         future.thenAccept((response)->{
             transform(kindred,response);
-            channelHandlerContext.writeAndFlush(kindred);
+            long start1 = TimeUtil.getNanoTime();
+            System.out.println("server writeAndFlush start:"+start1);
+            ChannelFuture channelFuture = channelHandlerContext.writeAndFlush(kindred);
+            channelFuture.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    TimeUtil.printCostTime("server writeAndFlush",start1);
+                }
+            });
+            TimeUtil.printCostTime("server channelRead0",start1);
         });
     }
 
