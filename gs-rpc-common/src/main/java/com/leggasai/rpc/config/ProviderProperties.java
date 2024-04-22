@@ -26,6 +26,17 @@ public class ProviderProperties {
     @Value("${gsrpc.provider.accepts:1024}")
     private Integer accepts;
 
+    @Value("${gsrpc.provider.registry.host:127.0.0.1}")
+    private String registryHost;
+    @Value("${gsrpc.provider.registry.port:2181}")
+    private Integer registryPort;
+    @Value("${gsrpc.provider.registry.type:zookeeper}")
+    private String registryType;
+    @Value("${gsrpc.provider.registry.timeout:5000}")
+    private Integer registryTimeout;
+    @Value("${gsrpc.provider.registry.session:60000}")
+    private Integer registrySession;
+
     public Integer getTimeout() {
         return timeout;
     }
@@ -90,6 +101,26 @@ public class ProviderProperties {
         this.host = host;
     }
 
+    public String getRegistryHost() {
+        return registryHost;
+    }
+
+    public Integer getRegistryPort() {
+        return registryPort;
+    }
+
+    public String getRegistryType() {
+        return registryType;
+    }
+
+    public Integer getRegistryTimeout() {
+        return registryTimeout;
+    }
+
+    public Integer getRegistrySession() {
+        return registrySession;
+    }
+
     /**
      * just for test, fixme
      * @return
@@ -105,6 +136,11 @@ public class ProviderProperties {
                 ", serialization='" + serialization + '\'' +
                 ", weight=" + weight +
                 ", accepts=" + accepts +
+                ", registryHost='" + registryHost + '\'' +
+                ", registryPort=" + registryPort +
+                ", registryType='" + registryType + '\'' +
+                ", registryTimeout=" + registryTimeout +
+                ", registrySession=" + registrySession +
                 '}';
     }
 }

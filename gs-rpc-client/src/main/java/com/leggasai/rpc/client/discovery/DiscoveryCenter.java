@@ -1,20 +1,15 @@
 package com.leggasai.rpc.client.discovery;
 
-import com.google.common.collect.Collections2;
-import com.leggasai.rpc.annotation.GsService;
 import com.leggasai.rpc.client.invoke.Invoker;
 import com.leggasai.rpc.client.netty.ConnectionPoolManager;
 import com.leggasai.rpc.common.beans.ServiceMeta;
-import com.leggasai.rpc.config.RegistryProperties;
+import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.utils.PathUtil;
 import com.leggasai.rpc.zookeeper.CuratorClient;
 import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -35,7 +30,7 @@ public class DiscoveryCenter{
     private static final String SERVICE_PREFIX = "services";
 
     @Autowired
-    private RegistryProperties registryProperties;
+    private ConsumerProperties consumerProperties;
 
     @Autowired
     private ConnectionPoolManager connectionPoolManager;
@@ -70,10 +65,10 @@ public class DiscoveryCenter{
 
     @PostConstruct
     public void init() {
-        String host = registryProperties.getHost();
-        Integer port = registryProperties.getPort();
-        Integer timeout = registryProperties.getTimeout();
-        Integer session = registryProperties.getSession();
+        String host = consumerProperties.getRegistryHost();
+        Integer port = consumerProperties.getRegistryPort();
+        Integer timeout = consumerProperties.getRegistryTimeout();
+        Integer session = consumerProperties.getRegistrySession();
         this.curatorClient = new CuratorClient(host,port,timeout,session);
         if (this.curatorClient.isConnected()){
             this.curatorClient.watchState(new DiscoveryConnectionStateListener(this,timeout,session));
@@ -86,7 +81,7 @@ public class DiscoveryCenter{
      */
     public void subscribeService(){
         if (!curatorClient.isConnected()){
-            logger.error("Registry services fails, cannot connect to the registry center {}:{}",registryProperties.getHost(),registryProperties.getPort());
+            logger.error("Registry services fails, cannot connect to the registry center {}:{}",consumerProperties.getRegistryHost(),consumerProperties.getRegistryPort());
             return;
         }
 
@@ -209,7 +204,7 @@ public class DiscoveryCenter{
     public void close(){
         closeListener();
         curatorClient.close();
-        logger.info("DiscoveryCenter has been closed and disconnected from remote registry center {}:{}",registryProperties.getHost(),registryProperties.getPort());
+        logger.info("DiscoveryCenter has been closed and disconnected from remote registry center {}:{}",consumerProperties.getRegistryHost(),consumerProperties.getRegistryPort());
     }
 
 }

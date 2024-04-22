@@ -8,6 +8,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.cglib.reflect.FastClass;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +35,6 @@ public class ServiceManager implements ApplicationContextAware {
      */
     private Map<String,Object> servicesMap = new HashMap<String,Object>();
     private Map<String,FastClass> services2FastClass = new HashMap<String,FastClass>();
-
     private Set<ServiceMeta> serviceMetaSet = new HashSet<ServiceMeta>();
 
     private ApplicationContext context;
@@ -69,6 +71,9 @@ public class ServiceManager implements ApplicationContextAware {
         }
         logger.info("ServiceManager starts up successfully and caches all serviceImpls");
     }
+    public boolean isAnyService(){
+        return !serviceMetaSet.isEmpty();
+    }
 
     public Object getService(String serviceKey){
         return servicesMap.get(serviceKey);
@@ -77,4 +82,5 @@ public class ServiceManager implements ApplicationContextAware {
     public FastClass getServiceFastClass(String serviceKey){
         return services2FastClass.get(serviceKey);
     }
+
 }

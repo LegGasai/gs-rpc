@@ -14,6 +14,10 @@ gsrpc:
     host: 127.0.0.1
     port: 20888
     accepts: 1024
+    registry:
+      host: 127.0.0.1
+      port: 2181
+      session: 5000
 
   consumer:
     timeout: 5000
@@ -22,10 +26,11 @@ gsrpc:
     protocol: kindred
     port: -1
     serialization: kryo
+    registry:
+      host: 127.0.0.1
+      port: 2181
+      session: 5000
 
-  registry:
-    host: 127.0.0.1
-    port: 2181
-    session: 5000
+
 
 

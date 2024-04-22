@@ -1,8 +1,6 @@
 package com.leggasai.rpc.gsrpcspringboot;
 
-import com.leggasai.rpc.client.discovery.DiscoveryBeanPostProcessor;
 import com.leggasai.rpc.client.discovery.DiscoveryCenter;
-import com.leggasai.rpc.client.invoke.InvocationManager;
 import com.leggasai.rpc.client.invoke.Invoker;
 import com.leggasai.rpc.client.netty.ConnectionPoolManager;
 import com.leggasai.rpc.client.netty.handler.AbstractClientChannelHandler;
@@ -13,21 +11,14 @@ import com.leggasai.rpc.common.beans.ServiceMeta;
 import com.leggasai.rpc.config.ApplicationProperties;
 import com.leggasai.rpc.config.ConsumerProperties;
 import com.leggasai.rpc.config.ProviderProperties;
-import com.leggasai.rpc.config.RegistryProperties;
-import com.leggasai.rpc.enums.ResponseType;
 import com.leggasai.rpc.exception.ErrorCode;
 import com.leggasai.rpc.exception.RpcException;
-import com.leggasai.rpc.gsrpcspringboot.api.HelloService;
 import com.leggasai.rpc.gsrpcspringboot.api.dto.Order;
-import com.leggasai.rpc.gsrpcspringboot.consumer.service.CacheService;
 import com.leggasai.rpc.gsrpcspringboot.consumer.service.DemoService;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImpl;
 import com.leggasai.rpc.gsrpcspringboot.provider.impl.HelloServiceImplV2;
 import com.leggasai.rpc.protocol.heartbeat.HeartBeat;
 import com.leggasai.rpc.protocol.kindred.Kindred;
-import com.leggasai.rpc.serialization.RpcSerialization;
-import com.leggasai.rpc.serialization.SerializationAdapter;
-import com.leggasai.rpc.serialization.SerializationFactory;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
 import com.leggasai.rpc.server.service.ServiceManager;
@@ -64,11 +55,11 @@ class GsRpcSpringbootApplicationTests {
         ApplicationProperties applicationProperties = context.getBean(ApplicationProperties.class);
         ProviderProperties providerProperties = context.getBean(ProviderProperties.class);
         ConsumerProperties consumerProperties = context.getBean(ConsumerProperties.class);
-        RegistryProperties registryProperties = context.getBean(RegistryProperties.class);
+
         System.out.println(applicationProperties);
         System.out.println(providerProperties);
         System.out.println(consumerProperties);
-        System.out.println(registryProperties);
+
     }
 
     /**

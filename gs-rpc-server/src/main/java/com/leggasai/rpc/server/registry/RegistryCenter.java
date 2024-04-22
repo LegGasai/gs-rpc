@@ -3,25 +3,17 @@ package com.leggasai.rpc.server.registry;
 import com.leggasai.rpc.common.beans.RpcURL;
 import com.leggasai.rpc.common.beans.ServiceMeta;
 import com.leggasai.rpc.config.ProviderProperties;
-import com.leggasai.rpc.config.RegistryProperties;
 import com.leggasai.rpc.constants.Separator;
 import com.leggasai.rpc.server.service.ServiceManager;
 import com.leggasai.rpc.utils.PathUtil;
 import com.leggasai.rpc.zookeeper.CuratorClient;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.framework.state.ConnectionStateListener;
-import org.apache.zookeeper.common.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @Author: Jiang Yichen
@@ -29,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Description: 注册中心
  */
 @Component
-public class RegistryCenter{
+public class RegistryCenter {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistryCenter.class);
     private static final String SPLIT_TOKEN = Separator.PATH_SPLIT;
@@ -45,18 +37,17 @@ public class RegistryCenter{
     private CuratorClient curatorClient;
 
     @Autowired
-    private RegistryProperties registryProperties;
-
+    private ProviderProperties providerProperties;
     @Autowired
     private ServiceManager serviceManager;
 
 
     @PostConstruct
     public void init() {
-        String host = registryProperties.getHost();
-        Integer port = registryProperties.getPort();
-        Integer timeout = registryProperties.getTimeout();
-        Integer session = registryProperties.getSession();
+        String host = providerProperties.getRegistryHost();
+        Integer port = providerProperties.getRegistryPort();
+        Integer timeout = providerProperties.getRegistryTimeout();
+        Integer session = providerProperties.getRegistrySession();
         this.curatorClient = new CuratorClient(host,port,timeout,session);
         if (this.curatorClient.isConnected()){
             this.curatorClient.watchState(new RegistryConnectionStateListener(this,timeout,session));
@@ -91,9 +82,11 @@ public class RegistryCenter{
     }
 
     public void close(){
-        logger.info("RegistryCenter has been closed and disconnected from remote registry center {}:{}",registryProperties.getHost(),registryProperties.getPort());
         unregister();
-        curatorClient.close();
+        if (curatorClient != null){
+            curatorClient.close();
+            logger.info("RegistryCenter has been closed and disconnected from remote registry center {}:{}",providerProperties.getRegistryHost(),providerProperties.getRegistryHost());
+        }
     }
 
     public void reRegisterAllServices(){
@@ -104,14 +97,15 @@ public class RegistryCenter{
     }
 
     private void doRegister(Set<ServiceMeta> serviceMetaSet, Boolean first){
-        if (!curatorClient.isConnected()){
-            logger.error("Registry services fails, cannot connect to the registry center {}:{}",registryProperties.getHost(),registryProperties.getPort());
-            return;
-        }
         if (serviceMetaSet.isEmpty()){
             logger.warn("No services have been provided by the current service provider");
             return;
         }
+        if (!curatorClient.isConnected()){
+            logger.error("Registry services fails, cannot connect to the registry center {}:{}",providerProperties.getRegistryHost(),providerProperties.getRegistryHost());
+            return;
+        }
+
         String providerParentPath = PathUtil.buildPath(SPLIT_TOKEN,PROVIDER_PREFIX,rpcURL.getAddress());
 
         curatorClient.createOrUpdatePersistent(providerParentPath,rpcURL.toString(),false);

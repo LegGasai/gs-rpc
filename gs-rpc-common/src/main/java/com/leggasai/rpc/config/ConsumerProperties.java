@@ -28,6 +28,16 @@ public class ConsumerProperties {
     @Value("${gsrpc.consumer.serialization:kryo}")
     private String serialization;
 
+    @Value("${gsrpc.consumer.registry.host:127.0.0.1}")
+    private String registryHost;
+    @Value("${gsrpc.consumer.registry.port:2181}")
+    private Integer registryPort;
+    @Value("${gsrpc.consumer.registry.type:zookeeper}")
+    private String registryType;
+    @Value("${gsrpc.consumer.registry.timeout:5000}")
+    private Integer registryTimeout;
+    @Value("${gsrpc.consumer.registry.session:60000}")
+    private Integer registrySession;
 
     public Integer getTimeout() {
         return timeout;
@@ -77,6 +87,26 @@ public class ConsumerProperties {
         this.serialization = serialization;
     }
 
+    public String getRegistryHost() {
+        return registryHost;
+    }
+
+    public Integer getRegistryPort() {
+        return registryPort;
+    }
+
+    public String getRegistryType() {
+        return registryType;
+    }
+
+    public Integer getRegistryTimeout() {
+        return registryTimeout;
+    }
+
+    public Integer getRegistrySession() {
+        return registrySession;
+    }
+
     /**
      * just for test, fixme
      * @return
@@ -90,6 +120,11 @@ public class ConsumerProperties {
                 ", protocol='" + protocol + '\'' +
                 ", port=" + port +
                 ", serialization='" + serialization + '\'' +
+                ", registryHost='" + registryHost + '\'' +
+                ", registryPort=" + registryPort +
+                ", registryType='" + registryType + '\'' +
+                ", registryTimeout=" + registryTimeout +
+                ", registrySession=" + registrySession +
                 '}';
     }
 }

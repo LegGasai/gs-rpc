@@ -76,7 +76,6 @@ public class NettyClient {
      * @return
      */
     public AbstractClientChannelHandler connect(Invoker invoker) throws InterruptedException{
-        // todo 和invoker建立连接
         // 返回handler
         String host = invoker.getHost();
         Integer port = invoker.getPort();

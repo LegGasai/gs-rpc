@@ -5,6 +5,7 @@ import com.leggasai.rpc.config.ProviderProperties;
 import com.leggasai.rpc.protocol.ProtocolType;
 import com.leggasai.rpc.serialization.SerializationType;
 import com.leggasai.rpc.server.registry.RegistryCenter;
+import com.leggasai.rpc.server.service.ServiceManager;
 import com.leggasai.rpc.server.service.TaskManager;
 import com.leggasai.rpc.utils.NetUtil;
 import io.netty.bootstrap.ServerBootstrap;
@@ -16,7 +17,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -40,6 +40,9 @@ public class NettyServer{
 
     @Autowired
     private TaskManager taskManager;
+
+    @Autowired
+    private ServiceManager serviceManager;
 
     private ServerBootstrap bootstrap;
     private EventLoopGroup bossGroup;
@@ -87,7 +90,7 @@ public class NettyServer{
 
 
     @PreDestroy
-    public void shutdown(){
+    private void shutdown(){
         // 关闭registryCenter 拒绝接收新的服务
         registryCenter.unregister();
         // 延迟关闭TaskManager，等待任务全部执行完毕，但最多延迟<优雅关闭的时间>
