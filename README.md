@@ -99,7 +99,7 @@ public class DemoService {
 ```
 4. Configure `Application.yml` or `Application.properties` file
 
-More configuration can be found here
+More configuration can be found [here](https://leggasai.github.io/posts/bcab05d2/).
 ```yaml
 gsrpc:
   application:
@@ -115,6 +115,10 @@ gsrpc:
     host: 127.0.0.1
     port: 20888
     accepts: 1024
+    registry:
+      host: 127.0.0.1 # your zookeeper host
+      port: 2181      # your zookeeper port
+      session: 5000
 
   consumer:
     timeout: 5000
@@ -123,12 +127,10 @@ gsrpc:
     protocol: kindred
     port: -1
     serialization: kryo
-
-  registry:
-    host: 127.0.0.1  # your zookeeper host
-    port: 2181       # your zookeeper port
-    session: 5000
-
+    registry:
+      host: 127.0.0.1 # your zookeeper host
+      port: 2181      # your zookeeper port
+      session: 5000
 
 ```
 
@@ -162,3 +164,5 @@ public class GsRpcSpringbootApplication {
 }
 
 ```
+
+Due to time and energy constraints, the project still has many deficiencies and improvements, welcome to provide valuable advice!

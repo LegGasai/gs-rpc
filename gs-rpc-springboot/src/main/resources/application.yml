@@ -1,5 +1,3 @@
-
-
 gsrpc:
   application:
     name: rpc-springboot-demo
