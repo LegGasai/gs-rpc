@@ -16,6 +16,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ import javax.annotation.PreDestroy;
  * @Description: 服务调用者-netty端
  */
 @Component
+@DependsOn("nettyServer")
 public class NettyClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
