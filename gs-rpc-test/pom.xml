@@ -10,9 +10,7 @@
     </parent>
 
     <artifactId>gs-rpc-test</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>gs-rpc-test</name>
-    <description>gs-rpc-test</description>
+
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
